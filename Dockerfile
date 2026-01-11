@@ -46,4 +46,4 @@ RUN useradd -m -u 1001 botuser && \
 USER botuser
 
 # Start the bot
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/main.js"]
