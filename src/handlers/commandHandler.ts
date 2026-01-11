@@ -1,0 +1,66 @@
+import { Client, Collection, REST, Routes } from 'discord.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import { log, logError } from '../utils/logger';
+
+interface BotCommand {
+    data: any;
+    execute: (interaction: any, client: any) => Promise<void>;
+}
+
+interface ExtendedClient extends Client {
+    commands: Collection<string, BotCommand>;
+}
+
+export async function loadCommands(client: ExtendedClient): Promise<void> {
+    client.commands = new Collection();
+    const commandsPath = path.join(__dirname, '../commands');
+    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
+
+    for (const file of commandFiles) {
+        const filePath = path.join(commandsPath, file);
+        const command = require(filePath).default;
+
+        if (command && command.data && command.execute) {
+            client.commands.set(command.data.name, command);
+        }
+    }
+    
+    log('Loading commands');
+}
+
+export async function deployCommands(client: ExtendedClient): Promise<void> {
+    const TOKEN = process.env.BOT_TOKEN;
+    const CLIENT_ID = process.env.CLIENT_ID;
+    const GUILD_ID = process.env.GUILD_ID;
+
+    if (!CLIENT_ID || !TOKEN) {
+        logError(new Error('Missing CLIENT_ID or BOT_TOKEN'), 'Commands');
+        return;
+    }
+
+    const rest = new REST({ version: '10' }).setToken(TOKEN);
+    const commands = client.commands.map(cmd => cmd.data);
+
+    try {
+        log('Deploying commands');
+        
+        if (GUILD_ID) {
+            // Dev Mode: Deploy to specific guild
+            await rest.put(
+                Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+                { body: commands }
+            );
+            // Clear global commands to prevent duplicates
+            await rest.put(Routes.applicationCommands(CLIENT_ID), { body: [] });
+        } else {
+            // Production Mode: Deploy globally
+            await rest.put(
+                Routes.applicationCommands(CLIENT_ID),
+                { body: commands }
+            );
+        }
+    } catch (error) {
+        logError(error, 'Commands');
+    }
+}

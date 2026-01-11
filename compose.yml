@@ -1,0 +1,31 @@
+services:
+  gaybot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gaybot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    volumes:
+      # Mount logs directory for error tracking
+      - ./.logs:/app/.logs
+    networks:
+      - bot-network
+    # Ensure the user has proper permissions
+    user: "1001:1001"
+    # Resource limits (optional but recommended)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+networks:
+  bot-network:
+    driver: bridge

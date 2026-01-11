@@ -1,0 +1,35 @@
+{
+    "name": "gaybot-reworked",
+    "version": "2.0.0",
+    "description": "A Discord Bot reworked to be simple and understandable",
+    "keywords": [
+        "discord"
+    ],
+    "homepage": "https://github.com/Girls-Network/GayBot#readme",
+    "bugs": {
+        "url": "https://github.com/Girls-Network/GayBot/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Girls-Network/GayBot.git"
+    },
+    "license": "SEE LICENCE IN LICENCE",
+    "author": "Girls Network Technologies Ltd",
+    "scripts": {
+        "test": "npm run build && node dist/main.js",
+        "build": "tsc",
+        "build:watch": "nodemon --watch src --ext ts --exec npm run build",
+        "start": "node dist/main.js",
+        "dev": "nodemon --watch src --ext ts --exec \"npm run build && npm run start\""
+    },
+    "devDependencies": {
+        "@types/node": "^25.0.3",
+        "typescript": "^5.9.3"
+    },
+    "dependencies": {
+        "discord.js": "^14.25.1",
+        "dotenv": "^17.2.3",
+        "node-fetch": "^3.3.2",
+        "nodemon": "^3.1.11"
+    }
+}

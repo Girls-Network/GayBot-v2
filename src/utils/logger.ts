@@ -1,0 +1,38 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
+const LOG_DIR = path.join(process.cwd(), '.logs');
+
+// Ensure log directory exists
+if (!fs.existsSync(LOG_DIR)) {
+    fs.mkdirSync(LOG_DIR, { recursive: true });
+}
+
+function getTimestamp(): string {
+    return new Date().toISOString();
+}
+
+export function log(message: string): void {
+    const timestamp = getTimestamp();
+    console.log(`[${timestamp}] ${message}`);
+}
+
+export function logError(error: Error | unknown, context?: string): void {
+    const timestamp = getTimestamp();
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : '';
+    
+    const logContent = `[${timestamp}] ERROR${context ? ` (${context})` : ''}: ${errorMessage}\n${stack}\n\n`;
+    
+    console.error(logContent);
+    
+    // Write to error log file
+    const filename = `error-${new Date().toISOString().split('T')[0]}.log`;
+    fs.appendFileSync(path.join(LOG_DIR, filename), logContent);
+}
+
+export function logBoot(): void {
+    console.log('\n╔════════════════════════════════════════════════════════════╗');
+    console.log('║  GayBot Revamped v2.0.0 - Girls Network Technologies Ltd   ║');
+    console.log('╚════════════════════════════════════════════════════════════╝\n');
+} 
