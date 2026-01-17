@@ -5,57 +5,76 @@ import {
     GuildMember
 } from 'discord.js';
 
-// NOTE: Currently using pronouns.page API
-// TODO: Migrate to internal checker in future for more updated and comprehensive definitions
-interface ApiTermVersion {
-    locale: string;
-    term: string;
-    definition: string;
-    category: string;
+// NOTE: Using girlsnetwork.dev API
+interface ApiResponse {
+    content: string;
+    type: 'gender' | 'sexuality';
 }
 
-interface ApiTerm {
-    term: string;
-    definition: string;
-    category: string;
-    locale: string;
-    versions: ApiTermVersion[];
+/**
+ * Normalize the search term by converting to lowercase and removing plural forms
+ */
+function normalizeTerm(term: string): string {
+    let normalized = term.toLowerCase().trim();
+    
+    // Remove common plural endings
+    if (normalized.endsWith('ies')) {
+        normalized = normalized.slice(0, -3) + 'y';
+    } else if (normalized.endsWith('es')) {
+        normalized = normalized.slice(0, -2);
+    } else if (normalized.endsWith('s') && normalized.length > 2) {
+        // Don't remove 's' from short words or words that might naturally end in 's'
+        const exceptionsEndingInS = ['trans', 'nonbinary', 'genderless', 'ageless'];
+        if (!exceptionsEndingInS.includes(normalized)) {
+            normalized = normalized.slice(0, -1);
+        }
+    }
+    
+    return normalized;
 }
 
-async function searchLgbtqTerm(term: string): Promise<ApiTerm | null> {
-    const apiURL = `https://en.pronouns.page/api/terms/search/${encodeURIComponent(term)}`;
+async function searchLgbtqTerm(term: string): Promise<ApiResponse | null> {
+    const normalizedTerm = normalizeTerm(term);
+    
+    // Use environment variable for API base URL, defaulting to production
+    const apiBase = 'http://localhost:3000';
+    const apiURL = `${apiBase}/api/${encodeURIComponent(normalizedTerm)}`;
+
+    console.log(`[LGBTQ Search] Original term: "${term}"`);
+    console.log(`[LGBTQ Search] Normalized term: "${normalizedTerm}"`);
+    console.log(`[LGBTQ Search] API URL: ${apiURL}`);
 
     try {
-        const response = await fetch(apiURL);
+        const response = await fetch(apiURL, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            },
+        });
+        
+        console.log(`[LGBTQ Search] Response status: ${response.status}`);
         
         if (!response.ok) {
+            // API returns 404 if not found
+            if (response.status === 404) {
+                console.log(`[LGBTQ Search] Term not found (404)`);
+                return null;
+            }
+            console.log(`[LGBTQ Search] API error: ${response.status} ${response.statusText}`);
+            const errorText = await response.text().catch(() => 'Unable to read error');
+            console.log(`[LGBTQ Search] Error response: ${errorText}`);
             return null;
         }
 
-        const data: ApiTerm[] = await response.json() as ApiTerm[];
+        const rawText = await response.text();
+        console.log(`[LGBTQ Search] Raw response: ${rawText}`);
+        
+        const data: ApiResponse = JSON.parse(rawText) as ApiResponse;
+        console.log(`[LGBTQ Search] Success! Type: ${data.type}`);
 
-        if (!Array.isArray(data) || data.length === 0) {
-            return null;
-        }
-
-        // Prefer English results
-        for (const entry of data) {
-            if (entry.locale === 'en') {
-                return entry;
-            }
-            const englishVersion = entry.versions.find(v => v.locale === 'en');
-            if (englishVersion) {
-                return {
-                    ...entry,
-                    term: englishVersion.term,
-                    definition: englishVersion.definition,
-                    category: englishVersion.category,
-                } as ApiTerm;
-            }
-        }
-
-        return null;
+        return data;
     } catch (error) {
+        console.error(`[LGBTQ Search] Fetch error:`, error);
         return null;
     }
 }
@@ -94,20 +113,16 @@ export default {
         let replyEmbed: EmbedBuilder;
 
         if (termData) {
-            // Clean up definition formatting
-            const definition = termData.definition
-                .replace(/\{#([^{}]+)=([^{}]+)\}/g, '$2')
-                .replace(/\{([^{}]+)\}/g, '$1');
-
-            const fullTermDisplay = termData.term.replace(/\|/g, ', ');
+            // Capitalize the type for display
+            const categoryDisplay = termData.type.charAt(0).toUpperCase() + termData.type.slice(1);
 
             replyEmbed = new EmbedBuilder()
                 .setColor(0x5865F2)
-                .setTitle(`🏳️‍🌈 Term: **${fullTermDisplay}**`)
-                .setDescription(definition)
+                .setTitle(`🏳️‍🌈 Term: **${searchTerm}**`)
+                .setDescription(termData.content)
                 .addFields(
-                    { name: 'Category', value: termData.category.split(',').map(c => c.trim()).join(', '), inline: true },
-                    { name: 'Source', value: 'en.pronouns.page', inline: true }
+                    { name: 'Category', value: categoryDisplay, inline: true },
+                    { name: 'Source', value: 'girlsnetwork.dev', inline: true }
                 )
                 .setFooter({ text: `Searched term: ${searchTerm}` });
 
@@ -118,8 +133,8 @@ export default {
             replyEmbed = new EmbedBuilder()
                 .setColor(0xED4245)
                 .setTitle('Term Not Found 🔎')
-                .setDescription(`Could not find a definition for **"${searchTerm}"** in the English database. Please try a different spelling or a more general term.`)
-                .setFooter({ text: `API Source: en.pronouns.page` });
+                .setDescription(`Could not find a definition for **"${searchTerm}"** in the database. Please try a different spelling or a more general term.`)
+                .setFooter({ text: `API Source: girlsnetwork.dev` });
 
             if (targetMember) {
                 content = `${targetMember}, I couldn't find a definition for **${searchTerm}**.`;

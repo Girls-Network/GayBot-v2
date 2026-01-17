@@ -45,20 +45,22 @@ export async function deployCommands(client: ExtendedClient): Promise<void> {
     try {
         log('Deploying commands');
         
+        // Always deploy globally
+        log('Deploying globally (may take up to 1 hour to propagate)');
+        await rest.put(
+            Routes.applicationCommands(CLIENT_ID),
+            { body: commands }
+        );
+        log('Global commands deployed successfully');
+        
+        // Additionally deploy to test guild if specified (instant)
         if (GUILD_ID) {
-            // Dev Mode: Deploy to specific guild
+            log(`Also deploying to guild ${GUILD_ID} for instant testing`);
             await rest.put(
                 Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
                 { body: commands }
             );
-            // Clear global commands to prevent duplicates
-            await rest.put(Routes.applicationCommands(CLIENT_ID), { body: [] });
-        } else {
-            // Production Mode: Deploy globally
-            await rest.put(
-                Routes.applicationCommands(CLIENT_ID),
-                { body: commands }
-            );
+            log('Guild commands deployed successfully');
         }
     } catch (error) {
         logError(error, 'Commands');
