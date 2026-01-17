@@ -67,7 +67,7 @@ export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise
             const message = await entry.message.fetch();
             await message.react(entry.emoji);
         } catch (error) {
-            console.error(chalk.red(`Failed to react with ${entry.emoji}:`, error));
+            console.error(chalk.redBright(`Failed to react with ${entry.emoji}:`, error));
         }
     }
 

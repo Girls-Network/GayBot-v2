@@ -50,7 +50,7 @@ async function loadEvents() {
         }
     }
     
-    log(chalk.blueBright('Loading events'));
+    log(chalk.cyanBright('Loading events'));
 }
 
 // Set bot presence

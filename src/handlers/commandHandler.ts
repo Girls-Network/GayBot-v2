@@ -27,7 +27,7 @@ export async function loadCommands(client: ExtendedClient): Promise<void> {
         }
     }
     
-    log(chalk.blueBright('Loading commands'));
+    log(chalk.cyanBright('Loading commands'));
 }
 
 export async function deployCommands(client: ExtendedClient): Promise<void> {

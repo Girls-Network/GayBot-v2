@@ -31,7 +31,7 @@ export function logError(error: Error | unknown, context?: string): void {
     const filename = `error-${new Date().toISOString().split('T')[0]}.log`;
     fs.appendFileSync(path.join(LOG_DIR, filename), logContent);
 
-    console.error(chalk.red(`There was an error, see: ${filename}`))
+    console.error(chalk.redBright(`There was an error, see: ${filename}`))
 }
 
 export function logBoot(): void {
