@@ -37,7 +37,7 @@ async function searchLgbtqTerm(term: string): Promise<ApiResponse | null> {
     const normalizedTerm = normalizeTerm(term);
     
     // Use environment variable for API base URL, defaulting to production
-    const apiBase = 'http://localhost:3000';
+    const apiBase = 'https://api.girlsnetwork.dev';
     const apiURL = `${apiBase}/api/${encodeURIComponent(normalizedTerm)}`;
 
     console.log(`[LGBTQ Search] Original term: "${term}"`);
