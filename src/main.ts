@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+import * as dotenv from '@dotenvx/dotenvx';
 dotenv.config();
 
 import { Client, GatewayIntentBits, Collection, ActivityType } from 'discord.js';
@@ -7,6 +7,7 @@ import * as path from 'path';
 import { loadCommands, deployCommands } from './handlers/commandHandler';
 import { processReactionQueue } from './utils/reactionSystem';
 import { logBoot, log, logError } from './utils/logger';
+import chalk from 'chalk';
 
 interface ReactionQueueEntry {
     message: any;
@@ -49,12 +50,12 @@ async function loadEvents() {
         }
     }
     
-    log('Loading events');
+    log(chalk.blueBright('Loading events'));
 }
 
 // Set bot presence
 client.once('clientReady', () => {
-    log(`Logged in as ${client.user?.tag}`);
+    log(chalk.greenBright(`Logged in as ${client.user?.tag}`));
     client.user?.setActivity('Gayness', { type: ActivityType.Watching });
 });
 
@@ -63,18 +64,11 @@ setInterval(() => processReactionQueue(client.reactionQueue), 1000);
 
 // Startup sequence
 async function start() {
-    try {
-        logBoot();
-        
-        await loadCommands(client);
-        await loadEvents();
-        await deployCommands(client);
-        
-        await client.login(process.env.BOT_TOKEN);
-    } catch (error) {
-        logError(error, 'Startup');
-        process.exit(1);
+    logBoot();    
+    await loadCommands(client);
+    await loadEvents();
+    await deployCommands(client);    
+    await client.login(process.env.BOT_TOKEN);
     }
-}
 
 start();

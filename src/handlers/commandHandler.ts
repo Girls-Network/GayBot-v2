@@ -2,6 +2,7 @@ import { Client, Collection, REST, Routes } from 'discord.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { log, logError } from '../utils/logger';
+import chalk from 'chalk';
 
 interface BotCommand {
     data: any;
@@ -26,7 +27,7 @@ export async function loadCommands(client: ExtendedClient): Promise<void> {
         }
     }
     
-    log('Loading commands');
+    log(chalk.blueBright('Loading commands'));
 }
 
 export async function deployCommands(client: ExtendedClient): Promise<void> {
@@ -39,28 +40,33 @@ export async function deployCommands(client: ExtendedClient): Promise<void> {
         return;
     }
 
+    if (CLIENT_ID === 'Client ID' || TOKEN === 'Token' ) {
+        logError(new Error('Default Values'), 'Commands')
+        process.exit(1)
+    }
+
     const rest = new REST({ version: '10' }).setToken(TOKEN);
     const commands = client.commands.map(cmd => cmd.data);
 
     try {
-        log('Deploying commands');
+        log(chalk.yellow('Deploying commands'));
         
         // Always deploy globally
-        log('Deploying globally (may take up to 1 hour to propagate)');
+        log(chalk.yellow('Deploying globally (may take up to 1 hour to propagate)'));
         await rest.put(
             Routes.applicationCommands(CLIENT_ID),
             { body: commands }
         );
-        log('Global commands deployed successfully');
+        log(chalk.greenBright('Global commands deployed successfully'));
         
         // Additionally deploy to test guild if specified (instant)
         if (GUILD_ID) {
-            log(`Also deploying to guild ${GUILD_ID} for instant testing`);
+            log(chalk.yellow(`Also deploying to guild ${GUILD_ID} for instant testing`));
             await rest.put(
                 Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
                 { body: commands }
             );
-            log('Guild commands deployed successfully');
+            log(chalk.greenBright('Guild commands deployed successfully'));
         }
     } catch (error) {
         logError(error, 'Commands');

@@ -1,5 +1,6 @@
 import { Message, PartialMessage } from 'discord.js';
 import emojiConfigData from '../configs/emoji-config.json';
+import chalk from 'chalk';
 
 interface EmojiConfig {
     emoji: string;
@@ -66,7 +67,7 @@ export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise
             const message = await entry.message.fetch();
             await message.react(entry.emoji);
         } catch (error) {
-            console.error(`Failed to react with ${entry.emoji}:`, error);
+            console.error(chalk.red(`Failed to react with ${entry.emoji}:`, error));
         }
     }
 
