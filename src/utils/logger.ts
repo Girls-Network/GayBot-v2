@@ -36,6 +36,6 @@ export function logError(error: Error | unknown, context?: string): void {
 
 export function logBoot(): void {
     console.log(chalk.magentaBright('\n╔════════════════════════════════════════════════════════════╗'));
-    console.log(chalk.magentaBright('║  GayBot Revamped v2.0.0 - Girls Network Technologies Ltd   ║'));
+    console.log(chalk.magentaBright('║  GayBot Revamped v2.1.0 - Girls Network Technologies Ltd   ║'));
     console.log(chalk.magentaBright('╚════════════════════════════════════════════════════════════╝\n'));
 } 

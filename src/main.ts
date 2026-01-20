@@ -1,6 +1,3 @@
-import * as dotenv from '@dotenvx/dotenvx';
-dotenv.config();
-
 import { Client, GatewayIntentBits, Collection, ActivityType } from 'discord.js';
 import * as fs from 'fs';
 import * as path from 'path';

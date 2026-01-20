@@ -5,14 +5,14 @@ services:
       dockerfile: Dockerfile
     container_name: gaybot
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       - NODE_ENV=production
       - FORCE_COLOR=1
     volumes:
       # Mount logs directory for error tracking
       - ./.logs:/app/.logs
+      - ./.env:/app/.env:ro
+      - ./.env.keys:/app/.env.keys:ro
     networks:
       - bot-network
     # Ensure the user has proper permissions
