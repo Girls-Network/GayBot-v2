@@ -35,6 +35,14 @@ export class KeywordChecker {
         this.emojiMap.forEach(item => {
             const matchFound = item.keywords.some(keyword => {
                 const lowerKeyword = keyword.toLowerCase();
+
+                // Check if keyword is a Discord mention
+                if (lowerKeyword.startsWith('<@') && lowerKeyword.endsWith('>')) {
+                    // For mentions, do exact string matching (case-insensitive)
+                    return lowerMessage.includes(lowerKeyword);
+                }
+
+                // For regular keywords, use word boundary regex
                 const escapedKeyword = lowerKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const pluralization = '(s|es)?';
                 const regex = new RegExp(`\\b${escapedKeyword}${pluralization}\\b`);
@@ -61,13 +69,12 @@ export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise
     isProcessing = true;
 
     const entry = queue.shift();
-
     if (entry) {
         try {
             const message = await entry.message.fetch();
             await message.react(entry.emoji);
         } catch (error) {
-            console.error(chalk.redBright(`Failed to react with ${entry.emoji}:`, error));
+            console.error(chalk.redBright`Failed to react with ${entry.emoji}:`, error);
         }
     }
 
