@@ -6,8 +6,8 @@ import {
 
 // Override map for specific user IDs
 const gaynessOverrides = new Map<string, number>([
-    ['652597508027187240', 101],
-    ['1025770042245251122', 69],
+    ['652597508027187240', 101], // @transbian
+    ['1125844710511104030', 69], // @xerin.zero
 ]);
 
 function calculateGayness(userId: string): number {
@@ -16,15 +16,11 @@ function calculateGayness(userId: string): number {
         return gaynessOverrides.get(userId)!;
     }
     
-    // Weekly seeded randomness
-    const weekSeed = Math.floor(Date.now() / 604800000);
-    const seededInput = userId + weekSeed;
-    let hash = 0;
-    for (let i = 0; i < seededInput.length; i++) {
-        hash = seededInput.charCodeAt(i) + ((hash << 5) - hash);
-        hash |= 0;
-    }
-    return Math.abs(hash % 101);
+    // Just random per use
+    // Not Math.random * 100, as it doesn't include 0 and 100 (common misconception)
+    const gayness = Math.floor(Math.random() * 101)
+    return gayness
+
 }
 
 export default {
