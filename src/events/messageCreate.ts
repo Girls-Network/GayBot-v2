@@ -21,8 +21,8 @@ const keywordChecker = new KeywordChecker();
 export default {
     name: 'messageCreate',
     async execute(message: Message) {
-        // Ignore bot messages
-        if (message.author.bot) return;
+        // Ignore bot messages but react to webhooks
+        if (message.author.bot && !message.webhookId) return;
         if (!message.content) return;
 
         const client = message.client as unknown as ExtendedClient;
