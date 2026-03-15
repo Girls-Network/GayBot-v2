@@ -10,6 +10,9 @@ WORKDIR /app
 # Copy package files
 COPY package.json ./
 
+# Copy the assets directory
+COPY assets ./assets
+
 # Install dependencies
 RUN npm install
 
