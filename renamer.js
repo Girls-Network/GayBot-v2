@@ -1,3 +1,11 @@
+/** This file was created to randomise the names of the PNG files in assets/ for the banner rotator system I implemented.
+ * Created by Clove on 2026-03-15.
+ * Feel free to copy this, this one is pretty much a one-off script and not part of the bot's main codebase, but I don't want to lose it in case I need to randomise the names again in the future.
+ * Usage: node renamer.js
+ * works without needing any extra dependencies, just make sure to have Node.js installed and run it in the terminal while being in the same directory as this file.
+ * LICENCE EXEMPTION: You can use this code in your own projects without needing to credit me or anything, it's a simple utility script and I don't mind if people use it.
+ */
+
 const fs = require('fs');
 const path = require('path');
 
