@@ -13,7 +13,8 @@ import {
 // Override map for specific user IDs
 const gaynessOverrides = new Map<string, number>([
     ['652597508027187240', 101], // @transbian
-    ['1125844710511104030', 69], // @xerin.zero
+    ['1125844710511104030', 69], // @doughmination.system
+    ['908055723659898902', 420] //@lillybanana.7z 
 ]);
 
 function calculateGayness(userId: string): number {
