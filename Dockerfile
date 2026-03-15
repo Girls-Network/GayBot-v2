@@ -10,9 +10,6 @@ WORKDIR /app
 # Copy package files
 COPY package.json ./
 
-# Copy the assets directory
-COPY assets ./assets
-
 # Install dependencies
 RUN npm install
 
@@ -35,6 +32,9 @@ RUN npm install --omit=dev && npm install -g @dotenvx/dotenvx
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
+
+# Get the assets over.
+COPY assets ./assets
 
 # Create a non-root user and set up directories with proper permissions
 RUN adduser -D -u 1001 botuser && \
