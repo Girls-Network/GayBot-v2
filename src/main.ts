@@ -10,6 +10,7 @@ import * as path from 'path';
 import { loadCommands, deployCommands } from './handlers/commandHandler';
 import { processReactionQueue } from './utils/reactionSystem';
 import { logBoot, log, logError } from './utils/logger';
+import { startBannerRotater } from './utils/bannerRotator';
 import chalk from 'chalk';
 
 interface ReactionQueueEntry {
@@ -60,6 +61,7 @@ async function loadEvents() {
 client.once('clientReady', () => {
     log(chalk.greenBright(`Logged in as ${client.user?.tag}`));
     client.user?.setActivity('Gayness', { type: ActivityType.Watching });
+    startBannerRotater(client);
 });
 
 // Start reaction queue processor
