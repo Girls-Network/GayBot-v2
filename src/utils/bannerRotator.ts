@@ -42,13 +42,7 @@ async function rotateBanner(client: Client): Promise<void> {
         const imageData = fs.readFileSync(filePath);
         const base64 = `data:image/png;base64,${imageData.toString('base64')}`;
 
-        await client.guilds.cache.forEach(async (guild) => {
-            try {
-                await guild.setBanner(base64);
-            } catch {
-                // Guild may not support banners (requires level 2 boost)
-            }
-        });
+        await client.user?.setBanner(base64);
 
         log(chalk.cyanBright(`Banner rotated to ${file} (${currentIndex + 1}/${bannerFiles.length})`));
         currentIndex = (currentIndex + 1) % bannerFiles.length;
