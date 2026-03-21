@@ -7,6 +7,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import chalk from 'chalk';
+import { VoiceStateEditOptions } from 'discord.js';
 
 const LOG_DIR = path.join(process.cwd(), '.logs');
 
@@ -30,9 +31,9 @@ export function logError(error: Error | unknown, context?: string): void {
     const formatted = chalk.grey(`[${timestamp}]`);
     const errorMessage = error instanceof Error ? error.message : String(error);
     const stack = error instanceof Error ? error.stack : '';
-    
+
     const logContent = `${formatted} ERROR${context ? ` (${context})` : ''}: ${errorMessage}\n${stack}\n\n`;
-    
+
     // Write to error log file
     const filename = `error-${new Date().toISOString().split('T')[0]}.log`;
     fs.appendFileSync(path.join(LOG_DIR, filename), logContent);
@@ -40,8 +41,28 @@ export function logError(error: Error | unknown, context?: string): void {
     console.error(chalk.redBright(`There was an error, see: ${filename}`))
 }
 
+export function asciiArt(): void {
+    const lines = [
+        "                                             .-'''-.                                                           ",
+        "                                            '   _    \\                                     .-''-.              ",
+        "                                 /|       /   / `.   \\                 .----.     .----..' .-.  )             ",
+        "  .--./)          .-.          .-||      .   |     \\  '                  \\    \\   /    // .'  / /              ",
+        " /.''\\\\            \\ \\        / /||      |   '      |  '  .|              '   '. /'   /(_/   / /               ",
+        "| |  | |      __    \\ \\      / / ||  __  \\    \\     / / .' |_             |    |'    /      / /                ",
+        " \\`-' /    .:--.'.   \\ \\    / /  ||/'__ '.`.   ` ..' /.'     |            |    ||    |     / /                 ",
+        " /(\"'`    / |   \\ |   \\ \\  / /   |:/`  '. '  '-...-'`'--.  .-'            '.   `'   .'    . '                  ",
+        " \\ '---.  `\" __ | |    \\ `  /    ||     | |             |  |               \\        /    / /    _.-')          ",
+        "  /'\"\"'.\\  .'.''| |     \\  /     ||\\    / '             |  |                \\      /   .' '  _.'.-''           ",
+        " ||     ||/ /   | |_    / /      |/\\'..' /              |  '.'               '----'   /  /.-'_.'               ",
+        " \\'. __// \\ \\._,\\ '/|`-' /       '  `'-'`               |   /                        /    _.'                  ",
+        "  `'---'   `--'  `\"  '..'                               `'-'                        ( _.-'                     ",
+    ];
+
+    lines.forEach(line => console.log(chalk.greenBright(line)));
+}
+
 export function logBoot(): void {
-    console.log(chalk.magentaBright('\n╔════════════════════════════════════════════════════════════╗'));
-    console.log(chalk.magentaBright('║  GayBot Revamped v2.1.6 - Girls Network Technologies Ltd   ║'));
-    console.log(chalk.magentaBright('╚════════════════════════════════════════════════════════════╝\n'));
+    console.log(chalk.magentaBright('\n╔═══════════════════════════════════╗'));
+    console.log(chalk.magentaBright('║  Girls Network Technologies Ltd   ║'));
+    console.log(chalk.magentaBright('╚═══════════════════════════════════╝\n'));
 } 

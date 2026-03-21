@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { loadCommands, deployCommands } from './handlers/commandHandler';
 import { processReactionQueue } from './utils/reactionSystem';
-import { logBoot, log, logError } from './utils/logger';
+import { logBoot, asciiArt, log, logError } from './utils/logger';
 import { startBannerRotater } from './utils/bannerRotator';
 import chalk from 'chalk';
 
@@ -69,6 +69,7 @@ setInterval(() => processReactionQueue(client.reactionQueue), 1000);
 
 // Startup sequence
 async function start() {
+    asciiArt();
     logBoot();    
     await loadCommands(client);
     await loadEvents();
