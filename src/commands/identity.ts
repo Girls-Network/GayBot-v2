@@ -50,46 +50,16 @@ export default {
         options: [
             // ── /identity set ─────────────────────────────────────────────
             {
-                type: ApplicationCommandOptionType.SubcommandGroup,
+                type: ApplicationCommandOptionType.Subcommand,
                 name: 'set',
-                description: 'Set a field on your identity profile.',
+                description: 'Set or update fields on your identity profile. All fields are optional.',
                 options: [
-                    {
-                        type: ApplicationCommandOptionType.Subcommand,
-                        name: 'pronouns',
-                        description: 'Set your pronouns.',
-                        options: [{ type: ApplicationCommandOptionType.String, name: 'value', description: 'e.g. she/her, they/them', required: true }],
-                    },
-                    {
-                        type: ApplicationCommandOptionType.Subcommand,
-                        name: 'gender',
-                        description: 'Set your gender identity.',
-                        options: [{ type: ApplicationCommandOptionType.String, name: 'value', description: 'e.g. non-binary, trans woman', required: true }],
-                    },
-                    {
-                        type: ApplicationCommandOptionType.Subcommand,
-                        name: 'sexuality',
-                        description: 'Set your sexual orientation.',
-                        options: [{ type: ApplicationCommandOptionType.String, name: 'value', description: 'e.g. bisexual, lesbian', required: true }],
-                    },
-                    {
-                        type: ApplicationCommandOptionType.Subcommand,
-                        name: 'romantic',
-                        description: 'Set your romantic orientation.',
-                        options: [{ type: ApplicationCommandOptionType.String, name: 'value', description: 'e.g. aromantic, biromantic', required: true }],
-                    },
-                    {
-                        type: ApplicationCommandOptionType.Subcommand,
-                        name: 'flag',
-                        description: 'Set your pride flag.',
-                        options: [{ type: ApplicationCommandOptionType.String, name: 'value', description: 'e.g. bisexual flag, trans flag', required: true }],
-                    },
-                    {
-                        type: ApplicationCommandOptionType.Subcommand,
-                        name: 'bio',
-                        description: 'Set a short bio.',
-                        options: [{ type: ApplicationCommandOptionType.String, name: 'value', description: 'A short bio about yourself.', required: true }],
-                    },
+                    { type: ApplicationCommandOptionType.String, name: 'pronouns',   description: 'Your pronouns (e.g. she/her, they/them).',          required: false },
+                    { type: ApplicationCommandOptionType.String, name: 'gender',     description: 'Your gender identity (e.g. non-binary, trans woman).', required: false },
+                    { type: ApplicationCommandOptionType.String, name: 'sexuality',  description: 'Your sexual orientation (e.g. bisexual, lesbian).',   required: false },
+                    { type: ApplicationCommandOptionType.String, name: 'romantic',   description: 'Your romantic orientation (e.g. aromantic).',         required: false },
+                    { type: ApplicationCommandOptionType.String, name: 'flag',       description: 'Your pride flag (e.g. trans flag, bi flag).',         required: false },
+                    { type: ApplicationCommandOptionType.String, name: 'bio',        description: 'A short bio about yourself.',                         required: false },
                 ],
             },
 
@@ -128,29 +98,28 @@ export default {
         if (!interaction.isChatInputCommand()) return;
 
         const sub = interaction.options.getSubcommand();
-        const group = interaction.options.getSubcommandGroup(false);
 
-        // ── SET (subcommand group) ─────────────────────────────────────────
-        if (group === 'set') {
-            const value = interaction.options.getString('value', true);
+        // ── SET ───────────────────────────────────────────────────────────
+        if (sub === 'set') {
+            const pronouns   = interaction.options.getString('pronouns')  ?? undefined;
+            const gender     = interaction.options.getString('gender')     ?? undefined;
+            const sexuality  = interaction.options.getString('sexuality')  ?? undefined;
+            const romantic   = interaction.options.getString('romantic')   ?? undefined;
+            const flag       = interaction.options.getString('flag')       ?? undefined;
+            const bio        = interaction.options.getString('bio')        ?? undefined;
 
-            const fieldMap: Record<string, keyof Omit<IdentityData, 'user_id' | 'updated_at'>> = {
-                pronouns:  'pronouns',
-                gender:    'gender',
-                sexuality: 'sexuality',
-                romantic:  'romantic',
-                flag:      'flag',
-                bio:       'bio',
-            };
+            if (!pronouns && !gender && !sexuality && !romantic && !flag && !bio) {
+                await interaction.reply({
+                    content: '❌ Please provide at least one field to update.',
+                    flags: MessageFlags.Ephemeral,
+                });
+                return;
+            }
 
-            const field = fieldMap[sub];
-            if (!field) return;
-
-            const updated = setIdentity(interaction.user.id, { [field]: value });
+            const updated = setIdentity(interaction.user.id, { pronouns, gender, sexuality, romantic, flag, bio });
 
             const avatarURL = interaction.user.displayAvatarURL();
             const embed = buildIdentityEmbed(updated, interaction.user.displayName, avatarURL, true);
-
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
             return;
         }
