@@ -38,10 +38,10 @@ COPY assets ./assets
 
 # Create a non-root user and set up directories with proper permissions
 RUN adduser -D -u 1001 botuser && \
-    mkdir -p /app/.logs && \
+    mkdir -p /app/.logs /app/data && \
     chown -R botuser:botuser /app
 
-    # Switch to non-root user
+# Switch to non-root user
 USER botuser
 
 # Start the bot with dotenvx
