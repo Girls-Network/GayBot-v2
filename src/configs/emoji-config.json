@@ -67,12 +67,17 @@
     {
         "emoji": "<:mikuBwaaa:1475961783994024188>",
         "title": "Miku",
-        "keywords": ["miku", "hatsune", "vocaloid", "leek", "1db", "cure", "polkka"]
+        "keywords": ["miku", "hatsune", "baka", "vocaloid", "leek", "1db", "cure", "polkka"]
     },
     {
         "emoji": "<:tetoBwaaa:1475961829963595867>",
         "title": "Teto",
-        "keywords": ["teto", "katsane", "pear", "utau", "override", "tetoris", "tetopear", "pearto"]
+        "keywords": ["teto", "katsane", "baka", "pear", "utau", "override", "tetoris", "tetopear", "pearto"]
+    },
+    {
+        "emoji": "<:neruBlush:1486642655583670302>",
+        "title": "Neru",
+        "keywords": ["neru", "akita", "baka", "zako", "tsumanne"]
     },
     {
         "emoji": "🇬🇧",
