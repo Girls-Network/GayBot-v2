@@ -62,7 +62,7 @@
     {
         "emoji": "<:gotobed:1475961747104862348>",
         "title": "Tired",
-        "keywords": ["tired", "sleepy", "eepy", "sleep", "nappy", "snooze", "exhausted", "zzz", "eepers"]
+        "keywords": ["tired", "sleepy", "eepy", "sleep", "eep", "snooze", "knackered", "exhausted", "zzzz", "eeper", "shoo"]
     },
     {
         "emoji": "<:mikuBwaaa:1475961783994024188>",
@@ -84,7 +84,6 @@
         "title": "Bwaaa",
         "keywords": ["bwaaa", "abwaaa", "wuhbwaaa", "hitori", "gotoh", "bocchi"]
     }
-
 ]
 
 
