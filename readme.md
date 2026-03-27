@@ -18,7 +18,7 @@ The easiest and fastest way to install the bot is by using the [official Discord
 
 ## 📜 Important Documents
 ### Licence
-Protected by the Girls Network Non-Commercial Source Licence
+Protected by the MIT Licence
 > See [LICENCE](./LICENCE) for details.
 
 ### Security
@@ -27,3 +27,8 @@ Any security vulnerabilities, please refer to the [Security Guidelines](./SECURI
 ### Contributing
 
 By contributing to our repository, you agree to adhere the [Contributing Guidelines](./CONTRIBUTING.md) and the [Code of Conduct](./CODE_OF_CONDUCT.md)
+
+### Credits
+This project was originally made by MeltyMooncakes, and we still credit her as the original author, even while we now own this ourselves.
+
+Also credits to ThatGirl_Photographer for her part in some of the old bot, which some of has been put into the new bot
