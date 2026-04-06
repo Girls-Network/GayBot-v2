@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2026 Girls Network
- * Licensed under the GN-NCSL-1.1 Licence.
+ * Licensed under the MIT Licence.
  * See LICENCE in the project root for full licence information.
  */
 
@@ -48,10 +48,21 @@ export class KeywordChecker {
                     return lowerMessage.includes(lowerKeyword);
                 }
 
-                // For regular keywords, use word boundary regex
+                // For regular keywords, use boundary-aware regex.
+                // \b only works between \w and \W characters, so keywords that
+                // start or end with non-word chars (e.g. :3, ;3, ^w^) won't
+                // match correctly with \b — we use lookahead/lookbehind for
+                // whitespace or string boundaries instead.
                 const escapedKeyword = lowerKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const pluralization = '(s|es)?';
-                const regex = new RegExp(`\\b${escapedKeyword}${pluralization}\\b`);
+
+                const startsWithWordChar = /^\w/.test(lowerKeyword);
+                const endsWithWordChar = /\w$/.test(lowerKeyword);
+
+                const prefix = startsWithWordChar ? '\\b' : '(?<=\\s|^)';
+                const suffix = endsWithWordChar ? '\\b' : '(?=\\s|$)';
+
+                const regex = new RegExp(`${prefix}${escapedKeyword}${pluralization}${suffix}`);
                 return regex.test(lowerMessage);
             });
 
