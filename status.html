@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GayBot — Status</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #0d0d12;
+      --surface:  #13131a;
+      --border:   #22223a;
+      --text:     #e8e8f0;
+      --muted:    #6b6b8a;
+      --accent1:  #ff6eb4;
+      --accent2:  #a78bfa;
+      --accent3:  #38bdf8;
+      --green:    #4ade80;
+      --yellow:   #fbbf24;
+      --red:      #f87171;
+      --mono:     'Space Mono', monospace;
+      --sans:     'DM Sans', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Noise texture overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Rainbow stripe header ── */
+    .rainbow-bar {
+      height: 3px;
+      background: linear-gradient(90deg, #ff6b6b, #ffa94d, #ffe066, #69db7c, #38bdf8, #a78bfa, #ff6eb4);
+    }
+
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 2.5rem 2rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.03em;
+    }
+
+    .logo-sub {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.15rem;
+    }
+
+    .overall-status {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+
+    .pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(74,222,128,0.4);
+      animation: pulse-anim 1.8s ease infinite;
+    }
+
+    .pulse-dot.degraded { background: var(--yellow); box-shadow: 0 0 0 0 rgba(251,191,36,0.4); }
+    .pulse-dot.down     { background: var(--red);    box-shadow: 0 0 0 0 rgba(248,113,113,0.4); animation: none; }
+
+    @keyframes pulse-anim {
+      0%   { box-shadow: 0 0 0 0 rgba(74,222,128,0.4); }
+      70%  { box-shadow: 0 0 0 8px rgba(74,222,128,0); }
+      100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .stat-card:hover { border-color: var(--accent2); }
+
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(167,139,250,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-value .unit {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-left: 0.2rem;
+    }
+
+    /* ── Section heading ── */
+    .section-heading {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-heading::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Shard grid ── */
+    .shard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .shard-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      transition: transform 0.15s, border-color 0.15s;
+      cursor: default;
+    }
+
+    .shard-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent2);
+    }
+
+    .shard-card.status-ready     { border-left: 3px solid var(--green); }
+    .shard-card.status-connecting,
+    .shard-card.status-reconnecting,
+    .shard-card.status-nearly    { border-left: 3px solid var(--yellow); }
+    .shard-card.status-disconnected,
+    .shard-card.status-unknown   { border-left: 3px solid var(--red); }
+    .shard-card.status-idle      { border-left: 3px solid var(--accent3); }
+
+    .shard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .shard-id {
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+
+    .status-badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+    }
+
+    .status-badge.ready        { background: rgba(74,222,128,0.12); color: var(--green); }
+    .status-badge.idle         { background: rgba(56,189,248,0.12); color: var(--accent3); }
+    .status-badge.connecting,
+    .status-badge.reconnecting,
+    .status-badge.nearly       { background: rgba(251,191,36,0.12); color: var(--yellow); }
+    .status-badge.disconnected,
+    .status-badge.unknown      { background: rgba(248,113,113,0.12); color: var(--red); }
+
+    .shard-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .shard-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+
+    .shard-stat-label { color: var(--muted); }
+
+    .shard-stat-value {
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+
+    /* Ping coloring */
+    .ping-good   { color: var(--green); }
+    .ping-ok     { color: var(--yellow); }
+    .ping-bad    { color: var(--red); }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      font-family: var(--mono);
+    }
+
+    footer a { color: var(--accent1); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Loading / Error states ── */
+    .loading-msg {
+      text-align: center;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      padding: 3rem;
+      letter-spacing: 0.05em;
+    }
+
+    .error-msg {
+      text-align: center;
+      color: var(--red);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      padding: 2rem;
+      background: rgba(248,113,113,0.06);
+      border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 12px;
+    }
+
+    /* ── Last updated ticker ── */
+    .last-updated {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-align: right;
+      margin-bottom: 2rem;
+      letter-spacing: 0.05em;
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 1.5rem 1rem 1.25rem; }
+      .stat-value { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="rainbow-bar"></div>
+
+<header>
+  <div>
+    <div class="logo">🏳️‍🌈 GayBot</div>
+    <div class="logo-sub">Girls Network Technologies Ltd</div>
+  </div>
+  <div class="overall-status" id="overallStatus">
+    <span class="pulse-dot" id="overallDot"></span>
+    <span id="overallLabel">Checking…</span>
+  </div>
+</header>
+
+<main>
+  <div class="last-updated" id="lastUpdated">Last updated: —</div>
+
+  <!-- Global stats -->
+  <p class="section-heading">Overview</p>
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-label">Total Shards</div>
+      <div class="stat-value" id="statTotalShards">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Guilds</div>
+      <div class="stat-value" id="statTotalGuilds">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Latency</div>
+      <div class="stat-value" id="statAvgPing">—<span class="unit">ms</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Uptime</div>
+      <div class="stat-value" id="statUptime">—</div>
+    </div>
+  </div>
+
+  <!-- Shard grid -->
+  <p class="section-heading">Shards</p>
+  <div class="shard-grid" id="shardGrid">
+    <div class="loading-msg">Fetching shard data…</div>
+  </div>
+</main>
+
+<footer>
+  &copy; 2026 <a href="https://girlsnetwork.dev" target="_blank">Girls Network</a> — Status page
+</footer>
+
+<script>
+  const API = '/api/status';
+  const REFRESH_MS = 10_000;
+
+  function formatUptime(seconds) {
+    const d = Math.floor(seconds / 86400);
+    const h = Math.floor((seconds % 86400) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (d > 0) return `${d}d ${h}h`;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  }
+
+  function pingClass(ms) {
+    if (ms < 0)   return '';
+    if (ms < 100) return 'ping-good';
+    if (ms < 250) return 'ping-ok';
+    return 'ping-bad';
+  }
+
+  function pingLabel(ms) {
+    return ms < 0 ? '—' : `${ms}ms`;
+  }
+
+  function uptimeLabel(s) {
+    return s <= 0 ? '—' : formatUptime(s);
+  }
+
+  function renderShards(shards) {
+    const grid = document.getElementById('shardGrid');
+    if (!shards.length) {
+      grid.innerHTML = '<div class="loading-msg">No shards reported yet.</div>';
+      return;
+    }
+
+    grid.innerHTML = shards.map(s => `
+      <div class="shard-card status-${s.status}">
+        <div class="shard-header">
+          <span class="shard-id">Shard #${s.id}</span>
+          <span class="status-badge ${s.status}">${s.status}</span>
+        </div>
+        <div class="shard-stats">
+          <div class="shard-stat">
+            <span class="shard-stat-label">Latency</span>
+            <span class="shard-stat-value ${pingClass(s.ping)}">${pingLabel(s.ping)}</span>
+          </div>
+          <div class="shard-stat">
+            <span class="shard-stat-label">Guilds</span>
+            <span class="shard-stat-value">${s.guilds}</span>
+          </div>
+          <div class="shard-stat">
+            <span class="shard-stat-label">Uptime</span>
+            <span class="shard-stat-value">${uptimeLabel(s.uptime)}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function setOverallStatus(shards) {
+    const dot   = document.getElementById('overallDot');
+    const label = document.getElementById('overallLabel');
+    const allReady  = shards.every(s => s.status === 'ready' || s.status === 'idle');
+    const anyDown   = shards.some(s => s.status === 'disconnected' || s.status === 'unknown');
+
+    if (anyDown) {
+      dot.className   = 'pulse-dot down';
+      label.textContent = 'Partial Outage';
+    } else if (!allReady) {
+      dot.className   = 'pulse-dot degraded';
+      label.textContent = 'Degraded';
+    } else {
+      dot.className   = 'pulse-dot';
+      label.textContent = 'All Systems Operational';
+    }
+  }
+
+  async function refresh() {
+    try {
+      const res  = await fetch(API);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      // Overview
+      document.getElementById('statTotalShards').textContent = data.totalShards;
+      document.getElementById('statTotalGuilds').textContent = data.totalGuilds.toLocaleString();
+      const avgPingEl = document.getElementById('statAvgPing');
+      avgPingEl.innerHTML = data.averagePing < 0
+        ? '—'
+        : `${data.averagePing}<span class="unit">ms</span>`;
+      document.getElementById('statUptime').textContent = formatUptime(data.uptime);
+
+      // Shards
+      renderShards(data.shards);
+      setOverallStatus(data.shards);
+
+      // Timestamp
+      document.getElementById('lastUpdated').textContent =
+        `Last updated: ${new Date().toLocaleTimeString()} · auto-refresh every ${REFRESH_MS / 1000}s`;
+
+    } catch (err) {
+      document.getElementById('shardGrid').innerHTML =
+        `<div class="error-msg">⚠ Failed to fetch status: ${err.message}<br>Is the bot running?</div>`;
+      const dot = document.getElementById('overallDot');
+      dot.className = 'pulse-dot down';
+      document.getElementById('overallLabel').textContent = 'Unreachable';
+    }
+  }
+
+  refresh();
+  setInterval(refresh, REFRESH_MS);
+</script>
+
+</body>
+</html>
