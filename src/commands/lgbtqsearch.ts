@@ -8,7 +8,8 @@ import {
     CommandInteraction, 
     EmbedBuilder,
     ApplicationCommandOptionType,
-    GuildMember
+    GuildMember,
+    MessageFlags
 } from 'discord.js';
 
 // NOTE: Using girlsnetwork.dev API
@@ -53,7 +54,6 @@ async function searchLgbtqTerm(term: string): Promise<ApiResponse | null> {
                 'Accept': 'application/json',
             },
         });
-        
         
         if (!response.ok) {
             // API returns 404 if not found
@@ -102,7 +102,7 @@ export default {
         const searchTerm = interaction.options.getString('term', true);
         const targetMember = interaction.options.getMember('member') as GuildMember | null;
 
-        await interaction.deferReply();
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         const termData = await searchLgbtqTerm(searchTerm);
 

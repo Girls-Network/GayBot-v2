@@ -46,13 +46,19 @@ export async function deployCommands(client: ExtendedClient): Promise<void> {
         return;
     }
 
-    if (CLIENT_ID === 'Client ID' || TOKEN === 'Token' ) {
-        logError(new Error('Default Values'), 'Commands')
-        process.exit(1)
+    if (CLIENT_ID === 'Client ID' || TOKEN === 'Token') {
+        logError(new Error('Default Values'), 'Commands');
+        process.exit(1);
     }
 
     const rest = new REST({ version: '10' }).setToken(TOKEN);
-    const commands = client.commands.map(cmd => cmd.data);
+
+    // Add integration_types and contexts to each command for user install support
+    const commands = client.commands.map(cmd => ({
+        ...cmd.data,
+        integration_types: [0, 1], // GUILD_INSTALL (0), USER_INSTALL (1)
+        contexts: [0, 1, 2],       // GUILD (0), BOT_DM (1), PRIVATE_CHANNEL (2)
+    }));
 
     try {
         log(chalk.yellow('Deploying commands'));

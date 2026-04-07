@@ -10,7 +10,7 @@ import {
     ActionRowBuilder, 
     ButtonBuilder, 
     ButtonStyle,
-    Client,
+    MessageFlags,
     Collection
 } from 'discord.js';
 
@@ -59,6 +59,6 @@ export default {
                 .setDisabled(totalPages <= 1)
         );
 
-        await interaction.reply({ embeds: [embed], components: [row] });
+        await interaction.reply({ embeds: [embed], components: [row], flags: MessageFlags.Ephemeral });
     },
 };

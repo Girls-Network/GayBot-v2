@@ -10,12 +10,11 @@ import {
     ApplicationCommandOptionType,
 } from 'discord.js';
 import yuriGifs from '../configs/yuri.json';
-// Gifs were sent by Camilla (1110542429838397471)
 
 export default {
     data: {
         name: 'yuri',
-        description: 'Posts a random kissing yuri gif! 🌸',
+        description: 'Posts a random yuri gif! 🌸',
         options: [
             {
                 type: ApplicationCommandOptionType.User,
@@ -37,7 +36,7 @@ export default {
             .setImage(gif);
 
         await interaction.reply({
-            content: `*${interaction.user.displayName} kisses ${targetUser}!* 🌸`,
+            content: `*${interaction.user} kisses ${targetUser}!* 🌸`,
             embeds: [embed],
         });
     },
