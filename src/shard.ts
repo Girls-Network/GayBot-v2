@@ -46,12 +46,13 @@ manager.on('shardCreate', shard => {
         log(chalk.yellow(`[Shard ${shard.id}] Reconnecting...`));
     });
 
-    shard.on('death', process => {
-        logError(
-            new Error(`Shard process exited with code ${process.exitCode}`),
-            `Shard ${shard.id}`
-        );
-    });
+    shard.on('death', (proc) => {
+    const code = (proc as any).exitCode ?? 'unknown';
+    logError(
+        new Error(`Shard process exited with code ${code}`),
+        `Shard ${shard.id}`
+    );
+});
 
     shard.on('error', err => {
         logError(err, `Shard ${shard.id}`);
