@@ -4,8 +4,8 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import { 
-    CommandInteraction, 
+import {
+    CommandInteraction,
     EmbedBuilder,
     ApplicationCommandOptionType
 } from 'discord.js';
@@ -14,7 +14,9 @@ import {
 const gaynessOverrides = new Map<string, number>([
     ['652597508027187240', 101], // @transbian
     ['1125844710511104030', 69], // @doughmination.system
-    ['908055723659898902', 420] //@lillybanana.7z 
+    ['908055723659898902', 420], // @lillybanana.7z
+    ['1110542429838397471', 200], // @msmoscar
+    ['527709099186716673', 200] // @theawesometaco
 ]);
 
 function calculateGayness(userId: string): number {
