@@ -44,7 +44,7 @@ RUN adduser -D -u 1001 botuser && \
 # Switch to non-root user
 USER botuser
 
-EXPOSE 3000
+EXPOSE 5000
 
 # Start the bot with dotenvx
 CMD ["dotenvx", "run", "--", "node", "dist/shard.js"]
