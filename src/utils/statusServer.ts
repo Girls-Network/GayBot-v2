@@ -11,7 +11,7 @@ import { ShardingManager } from 'discord.js';
 import { log, logError } from './logger';
 import chalk from 'chalk';
 
-const STATUS_PORT = parseInt(process.env.STATUS_PORT ?? '3000', 10);
+const STATUS_PORT = parseInt(process.env.STATUS_PORT ?? '5000', 10);
 
 interface ShardStatus {
     id: number;
