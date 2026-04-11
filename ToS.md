@@ -31,7 +31,10 @@ You agree to use GayBot only for lawful purposes and in accordance with these Te
 GayBot provides the following features:
 
 - `/gaycounter` – A fun, randomised command for entertainment purposes only. Results have no basis in fact.
-- `/lgbtqsearch` – Queries the GayBotAPI to provide definitions of LGBTQIA+ terms.
+- `/lgbtqsearch` – Queries the GayBot API to provide definitions of LGBTQIA+ terms.
+- `/yuri` – Posts a random yuri gif, optionally mentioning another user.
+- `/hug` – Posts a random hugging gif, optionally mentioning another user.
+- `/identity` – Allows users to set, view, and manage a personal LGBTQ+ identity profile, including pronouns, gender, sexuality, romantic orientation, pride flag, and a short bio. This data is stored persistently and can be deleted at any time via `/identity clear`.
 - `/ping` – Returns latency information.
 - `/help` – Lists available commands.
 - **Keyword Reactions** – Automatically reacts to messages containing certain keywords with relevant emoji.
@@ -48,7 +51,7 @@ We make no guarantee that GayBot will be available at all times. The Bot may be 
 
 ## 5. Licence
 
-GayBot's source code is licensed under the **MIT LICENCE.** See the [LICENCE](./LICENCE) file for full details.
+GayBot's source code is licensed under the **MIT Licence.** See the [LICENCE](./LICENCE) file for full details.
 
 ---
 
@@ -60,7 +63,7 @@ All content, branding, and code associated with GayBot are the property of Aria 
 
 ## 7. Third-Party Services
 
-GayBot integrates with third-party services including the Discord API and the girlsnetwork.dev API. Your use of these services is subject to their respective terms and policies. We are not responsible for the availability or accuracy of third-party content or services.
+GayBot integrates with third-party services including the Discord API and the GayBot API. Your use of these services is subject to their respective terms and policies. We are not responsible for the availability or accuracy of third-party content or services.
 
 ---
 
