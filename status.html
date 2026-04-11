@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GayBot — Status</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg:       #0d0d12;
-      --surface:  #13131a;
-      --border:   #22223a;
-      --text:     #e8e8f0;
-      --muted:    #6b6b8a;
+      --bg:       #0a0a0f;
+      --surface:  #111118;
+      --surface2: #17171f;
+      --border:   #1e1e2e;
+      --border2:  #2a2a3e;
+      --text:     #e2e2ee;
+      --muted:    #5a5a7a;
+      --muted2:   #8080a0;
       --accent1:  #ff6eb4;
       --accent2:  #a78bfa;
       --accent3:  #38bdf8;
@@ -21,6 +24,7 @@
       --red:      #f87171;
       --mono:     'Space Mono', monospace;
       --sans:     'DM Sans', sans-serif;
+      --radius:   10px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,26 +37,43 @@
       overflow-x: hidden;
     }
 
-    /* ── Noise texture overlay ── */
+    /* Subtle grid background */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      background-image:
+        linear-gradient(rgba(167,139,250,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(167,139,250,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ── Rainbow stripe header ── */
+    /* Rainbow stripe */
     .rainbow-bar {
       height: 3px;
-      background: linear-gradient(90deg, #ff6b6b, #ffa94d, #ffe066, #69db7c, #38bdf8, #a78bfa, #ff6eb4);
+      background: linear-gradient(90deg,
+        #e40303 0%,
+        #e40303 16.6%,
+        #ff8c00 16.6%,
+        #ff8c00 33.3%,
+        #ffed00 33.3%,
+        #ffed00 50%,
+        #008026 50%,
+        #008026 66.6%,
+        #004dff 66.6%,
+        #004dff 83.3%,
+        #750787 83.3%,
+        #750787 100%
+      );
     }
 
+    /* ── Header ── */
     header {
       position: relative;
       z-index: 1;
-      padding: 2.5rem 2rem 2rem;
+      padding: 2rem 2rem 1.75rem;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -60,24 +81,43 @@
       flex-wrap: wrap;
     }
 
+    .logo-wrap { display: flex; align-items: center; gap: 0.75rem; }
+
+    /* Pride flag emoji rendered large, not gradient-clipped */
+    .logo-flag {
+      font-size: 1.8rem;
+      line-height: 1;
+      /* override any inherited text-fill */
+      -webkit-text-fill-color: initial;
+    }
+
+    .logo-text-wrap { display: flex; flex-direction: column; gap: 0.1rem; }
+
     .logo {
       font-family: var(--mono);
-      font-size: 1.5rem;
+      font-size: 1.35rem;
       font-weight: 700;
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      /* 6-stop pride flag gradient across the text */
+      background: linear-gradient(90deg,
+        #e40303 0%,
+        #ff8c00 20%,
+        #ffed00 38%,
+        #008026 55%,
+        #004dff 75%,
+        #750787 100%
+      );
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
     }
 
     .logo-sub {
       font-family: var(--mono);
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: var(--muted);
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-top: 0.15rem;
     }
 
     .overall-status {
@@ -86,99 +126,59 @@
       align-items: center;
       gap: 0.6rem;
       font-family: var(--mono);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       letter-spacing: 0.05em;
     }
 
     .pulse-dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: var(--green);
       box-shadow: 0 0 0 0 rgba(74,222,128,0.4);
       animation: pulse-anim 1.8s ease infinite;
+      flex-shrink: 0;
     }
-
     .pulse-dot.degraded { background: var(--yellow); box-shadow: 0 0 0 0 rgba(251,191,36,0.4); }
-    .pulse-dot.down     { background: var(--red);    box-shadow: 0 0 0 0 rgba(248,113,113,0.4); animation: none; }
+    .pulse-dot.down     { background: var(--red);    box-shadow: none; animation: none; }
 
     @keyframes pulse-anim {
-      0%   { box-shadow: 0 0 0 0 rgba(74,222,128,0.4); }
-      70%  { box-shadow: 0 0 0 8px rgba(74,222,128,0); }
-      100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+      0%   { box-shadow: 0 0 0 0   rgba(74,222,128,0.45); }
+      70%  { box-shadow: 0 0 0 9px rgba(74,222,128,0);    }
+      100% { box-shadow: 0 0 0 0   rgba(74,222,128,0);    }
     }
 
+    /* ── Main layout ── */
     main {
       position: relative;
       z-index: 1;
-      max-width: 1100px;
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 2.5rem 1.5rem 4rem;
+      padding: 2.5rem 1.5rem 5rem;
     }
 
-    /* ── Stats row ── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.2s;
-    }
-
-    .stat-card:hover { border-color: var(--accent2); }
-
-    .stat-card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(167,139,250,0.04) 0%, transparent 60%);
-      pointer-events: none;
-    }
-
-    .stat-label {
-      font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-value {
+    /* ── Last updated ── */
+    .last-updated {
       font-family: var(--mono);
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1;
-    }
-
-    .stat-value .unit {
-      font-size: 0.9rem;
+      font-size: 0.68rem;
       color: var(--muted);
-      margin-left: 0.2rem;
+      text-align: right;
+      margin-bottom: 2rem;
+      letter-spacing: 0.04em;
     }
 
     /* ── Section heading ── */
     .section-heading {
       font-family: var(--mono);
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--muted2);
       margin-bottom: 1rem;
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
-
     .section-heading::after {
       content: '';
       flex: 1;
@@ -186,142 +186,281 @@
       background: var(--border);
     }
 
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+      gap: 0.875rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem 1.35rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .stat-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-1px);
+    }
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(167,139,250,0.035) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .stat-label {
+      font-size: 0.67rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-value .unit {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-left: 0.2rem;
+    }
+
+    /* ── Guild search ── */
+    .search-wrap {
+      margin-bottom: 2.5rem;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 0.6rem;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 0.25rem 0.25rem 0.25rem 1rem;
+      align-items: center;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-box:focus-within {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 3px rgba(167,139,250,0.12);
+    }
+
+    .search-box input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      color: var(--text);
+      letter-spacing: 0.04em;
+      padding: 0.55rem 0;
+    }
+    .search-box input::placeholder { color: var(--muted); }
+
+    .search-btn {
+      background: linear-gradient(135deg, var(--accent2), var(--accent1));
+      border: none;
+      border-radius: 7px;
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      padding: 0.55rem 1.1rem;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .search-btn:hover  { opacity: 0.88; }
+    .search-btn:active { transform: scale(0.97); }
+
+    .search-result {
+      margin-top: 0.85rem;
+      padding: 0.9rem 1.1rem;
+      border-radius: var(--radius);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      display: none;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .search-result.visible { display: flex; }
+    .search-result.ok {
+      background: rgba(74,222,128,0.07);
+      border: 1px solid rgba(74,222,128,0.2);
+      color: var(--green);
+    }
+    .search-result.err {
+      background: rgba(248,113,113,0.07);
+      border: 1px solid rgba(248,113,113,0.2);
+      color: var(--red);
+    }
+    .search-result .shard-pill {
+      background: rgba(167,139,250,0.15);
+      color: var(--accent2);
+      border-radius: 6px;
+      padding: 0.2rem 0.55rem;
+      font-weight: 700;
+    }
+
     /* ── Shard grid ── */
     .shard-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 0.875rem;
       margin-bottom: 2.5rem;
     }
 
     .shard-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem;
-      transition: transform 0.15s, border-color 0.15s;
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
       cursor: default;
+      position: relative;
+      overflow: hidden;
     }
-
     .shard-card:hover {
       transform: translateY(-2px);
-      border-color: var(--accent2);
+      border-color: var(--border2);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
     }
 
-    .shard-card.status-ready     { border-left: 3px solid var(--green); }
-    .shard-card.status-connecting,
-    .shard-card.status-reconnecting,
-    .shard-card.status-nearly    { border-left: 3px solid var(--yellow); }
-    .shard-card.status-disconnected,
-    .shard-card.status-unknown   { border-left: 3px solid var(--red); }
-    .shard-card.status-idle      { border-left: 3px solid var(--accent3); }
+    /* Coloured left edge */
+    .shard-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+    }
+    .shard-card.status-ready::before     { background: var(--green); }
+    .shard-card.status-idle::before      { background: var(--accent3); }
+    .shard-card.status-connecting::before,
+    .shard-card.status-reconnecting::before,
+    .shard-card.status-nearly::before    { background: var(--yellow); }
+    .shard-card.status-disconnected::before,
+    .shard-card.status-unknown::before   { background: var(--red); }
+
+    /* Glow when highlighted by search */
+    .shard-card.highlight {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 2px rgba(167,139,250,0.3), 0 8px 24px rgba(0,0,0,0.4);
+    }
 
     .shard-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 1rem;
+      margin-bottom: 0.9rem;
     }
 
     .shard-id {
       font-family: var(--mono);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 700;
       color: var(--accent2);
     }
 
     .status-badge {
       font-family: var(--mono);
-      font-size: 0.65rem;
-      letter-spacing: 0.08em;
+      font-size: 0.62rem;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
-      padding: 0.25rem 0.6rem;
+      padding: 0.22rem 0.55rem;
       border-radius: 999px;
     }
-
-    .status-badge.ready        { background: rgba(74,222,128,0.12); color: var(--green); }
-    .status-badge.idle         { background: rgba(56,189,248,0.12); color: var(--accent3); }
+    .status-badge.ready        { background: rgba(74,222,128,0.12);  color: var(--green);   }
+    .status-badge.idle         { background: rgba(56,189,248,0.12);  color: var(--accent3); }
     .status-badge.connecting,
     .status-badge.reconnecting,
-    .status-badge.nearly       { background: rgba(251,191,36,0.12); color: var(--yellow); }
+    .status-badge.nearly       { background: rgba(251,191,36,0.12);  color: var(--yellow);  }
     .status-badge.disconnected,
-    .status-badge.unknown      { background: rgba(248,113,113,0.12); color: var(--red); }
+    .status-badge.unknown      { background: rgba(248,113,113,0.12); color: var(--red);     }
 
     .shard-stats {
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
+      gap: 0.45rem;
     }
-
     .shard-stat {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.8rem;
+      font-size: 0.79rem;
     }
-
     .shard-stat-label { color: var(--muted); }
-
     .shard-stat-value {
       font-family: var(--mono);
-      font-size: 0.78rem;
+      font-size: 0.77rem;
       color: var(--text);
     }
+    .ping-good { color: var(--green);  }
+    .ping-ok   { color: var(--yellow); }
+    .ping-bad  { color: var(--red);    }
 
-    /* Ping coloring */
-    .ping-good   { color: var(--green); }
-    .ping-ok     { color: var(--yellow); }
-    .ping-bad    { color: var(--red); }
+    /* ── Divider inside shard ── */
+    .shard-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0.65rem 0;
+    }
 
     /* ── Footer ── */
     footer {
       position: relative;
       z-index: 1;
       text-align: center;
-      padding: 1.5rem;
-      font-size: 0.75rem;
+      padding: 1.25rem;
+      font-size: 0.72rem;
       color: var(--muted);
       border-top: 1px solid var(--border);
       font-family: var(--mono);
     }
-
     footer a { color: var(--accent1); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
 
-    /* ── Loading / Error states ── */
+    /* ── Loading / Error ── */
     .loading-msg {
+      grid-column: 1 / -1;
       text-align: center;
       color: var(--muted);
       font-family: var(--mono);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       padding: 3rem;
       letter-spacing: 0.05em;
     }
-
     .error-msg {
+      grid-column: 1 / -1;
       text-align: center;
       color: var(--red);
       font-family: var(--mono);
-      font-size: 0.85rem;
-      padding: 2rem;
+      font-size: 0.82rem;
+      padding: 1.75rem;
       background: rgba(248,113,113,0.06);
-      border: 1px solid rgba(248,113,113,0.2);
-      border-radius: 12px;
-    }
-
-    /* ── Last updated ticker ── */
-    .last-updated {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--muted);
-      text-align: right;
-      margin-bottom: 2rem;
-      letter-spacing: 0.05em;
+      border: 1px solid rgba(248,113,113,0.18);
+      border-radius: var(--radius);
     }
 
     @media (max-width: 600px) {
-      header { padding: 1.5rem 1rem 1.25rem; }
+      header { padding: 1.25rem 1rem 1rem; }
+      .logo  { font-size: 1.15rem; }
       .stat-value { font-size: 1.4rem; }
+      .shard-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 400px) {
+      .shard-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -330,9 +469,12 @@
 <div class="rainbow-bar"></div>
 
 <header>
-  <div>
-    <div class="logo">🏳️‍🌈 GayBot</div>
-    <div class="logo-sub">Girls Network Technologies Ltd</div>
+  <div class="logo-wrap">
+    <span class="logo-flag">🏳️‍🌈</span>
+    <div class="logo-text-wrap">
+      <div class="logo">GayBot</div>
+      <div class="logo-sub">Girls Network Technologies Ltd</div>
+    </div>
   </div>
   <div class="overall-status" id="overallStatus">
     <span class="pulse-dot" id="overallDot"></span>
@@ -343,9 +485,9 @@
 <main>
   <div class="last-updated" id="lastUpdated">Last updated: —</div>
 
-  <!-- Global stats -->
+  <!-- Overview -->
   <p class="section-heading">Overview</p>
-  <div class="stats-row" id="statsRow">
+  <div class="stats-row">
     <div class="stat-card">
       <div class="stat-label">Total Shards</div>
       <div class="stat-value" id="statTotalShards">—</div>
@@ -364,7 +506,24 @@
     </div>
   </div>
 
-  <!-- Shard grid -->
+  <!-- Guild → Shard lookup -->
+  <p class="section-heading">Guild Lookup</p>
+  <div class="search-wrap">
+    <div class="search-box">
+      <input
+        type="text"
+        id="guildInput"
+        placeholder="Paste a Guild ID…"
+        spellcheck="false"
+        autocomplete="off"
+        maxlength="22"
+      />
+      <button class="search-btn" id="searchBtn">Find Shard →</button>
+    </div>
+    <div class="search-result" id="searchResult"></div>
+  </div>
+
+  <!-- Shards -->
   <p class="section-heading">Shards</p>
   <div class="shard-grid" id="shardGrid">
     <div class="loading-msg">Fetching shard data…</div>
@@ -376,8 +535,13 @@
 </footer>
 
 <script>
-  const API = '/api/status';
+  const API        = '/api/status';
   const REFRESH_MS = 10_000;
+
+  let cachedShards    = [];
+  let cachedTotalShards = 0;
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
 
   function formatUptime(seconds) {
     const d = Math.floor(seconds / 86400);
@@ -397,13 +561,23 @@
     return 'ping-bad';
   }
 
-  function pingLabel(ms) {
-    return ms < 0 ? '—' : `${ms}ms`;
+  function pingLabel(ms) { return ms < 0 ? '—' : `${ms}ms`; }
+  function uptimeLabel(s) { return s <= 0 ? '—' : formatUptime(s); }
+
+  /**
+   * Discord shard formula: shardId = (BigInt(guildId) >> 22n) % BigInt(totalShards)
+   * Works for any valid snowflake.
+   */
+  function guildToShard(guildId, totalShards) {
+    try {
+      const id = BigInt(guildId.trim());
+      return Number((id >> 22n) % BigInt(totalShards));
+    } catch {
+      return null;
+    }
   }
 
-  function uptimeLabel(s) {
-    return s <= 0 ? '—' : formatUptime(s);
-  }
+  // ── Shard rendering ────────────────────────────────────────────────────────
 
   function renderShards(shards) {
     const grid = document.getElementById('shardGrid');
@@ -413,7 +587,7 @@
     }
 
     grid.innerHTML = shards.map(s => `
-      <div class="shard-card status-${s.status}">
+      <div class="shard-card status-${s.status}" id="shard-card-${s.id}">
         <div class="shard-header">
           <span class="shard-id">Shard #${s.id}</span>
           <span class="status-badge ${s.status}">${s.status}</span>
@@ -423,9 +597,10 @@
             <span class="shard-stat-label">Latency</span>
             <span class="shard-stat-value ${pingClass(s.ping)}">${pingLabel(s.ping)}</span>
           </div>
+          <div class="shard-divider"></div>
           <div class="shard-stat">
             <span class="shard-stat-label">Guilds</span>
-            <span class="shard-stat-value">${s.guilds}</span>
+            <span class="shard-stat-value">${s.guilds.toLocaleString()}</span>
           </div>
           <div class="shard-stat">
             <span class="shard-stat-label">Uptime</span>
@@ -436,23 +611,71 @@
     `).join('');
   }
 
+  // ── Overall status indicator ───────────────────────────────────────────────
+
   function setOverallStatus(shards) {
     const dot   = document.getElementById('overallDot');
     const label = document.getElementById('overallLabel');
-    const allReady  = shards.every(s => s.status === 'ready' || s.status === 'idle');
-    const anyDown   = shards.some(s => s.status === 'disconnected' || s.status === 'unknown');
+    const allReady = shards.every(s => s.status === 'ready' || s.status === 'idle');
+    const anyDown  = shards.some(s  => s.status === 'disconnected' || s.status === 'unknown');
 
     if (anyDown) {
-      dot.className   = 'pulse-dot down';
+      dot.className     = 'pulse-dot down';
       label.textContent = 'Partial Outage';
     } else if (!allReady) {
-      dot.className   = 'pulse-dot degraded';
+      dot.className     = 'pulse-dot degraded';
       label.textContent = 'Degraded';
     } else {
-      dot.className   = 'pulse-dot';
+      dot.className     = 'pulse-dot';
       label.textContent = 'All Systems Operational';
     }
   }
+
+  // ── Guild search ───────────────────────────────────────────────────────────
+
+  function doSearch() {
+    const raw     = document.getElementById('guildInput').value.trim();
+    const result  = document.getElementById('searchResult');
+
+    // Clear previous highlight
+    document.querySelectorAll('.shard-card.highlight').forEach(el => el.classList.remove('highlight'));
+
+    if (!raw) {
+      result.className = 'search-result';
+      return;
+    }
+
+    if (cachedTotalShards === 0) {
+      result.className = 'search-result err visible';
+      result.innerHTML = '⚠ Shard data not loaded yet — try again in a moment.';
+      return;
+    }
+
+    const shardId = guildToShard(raw, cachedTotalShards);
+
+    if (shardId === null) {
+      result.className = 'search-result err visible';
+      result.innerHTML = '⚠ That doesn\'t look like a valid Guild ID (snowflake).';
+      return;
+    }
+
+    result.className = 'search-result ok visible';
+    result.innerHTML = `Guild <code style="color:var(--text)">${raw}</code> → <span class="shard-pill">Shard #${shardId}</span>`;
+
+    // Scroll to & highlight the card
+    const card = document.getElementById(`shard-card-${shardId}`);
+    if (card) {
+      card.classList.add('highlight');
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  document.getElementById('searchBtn').addEventListener('click', doSearch);
+  document.getElementById('guildInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+
+  // ── Data fetch & refresh ──────────────────────────────────────────────────
 
   async function refresh() {
     try {
@@ -460,20 +683,22 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
-      // Overview
+      cachedShards      = data.shards;
+      cachedTotalShards = data.totalShards;
+
       document.getElementById('statTotalShards').textContent = data.totalShards;
       document.getElementById('statTotalGuilds').textContent = data.totalGuilds.toLocaleString();
+
       const avgPingEl = document.getElementById('statAvgPing');
       avgPingEl.innerHTML = data.averagePing < 0
         ? '—'
         : `${data.averagePing}<span class="unit">ms</span>`;
+
       document.getElementById('statUptime').textContent = formatUptime(data.uptime);
 
-      // Shards
       renderShards(data.shards);
       setOverallStatus(data.shards);
 
-      // Timestamp
       document.getElementById('lastUpdated').textContent =
         `Last updated: ${new Date().toLocaleTimeString()} · auto-refresh every ${REFRESH_MS / 1000}s`;
 
@@ -489,6 +714,5 @@
   refresh();
   setInterval(refresh, REFRESH_MS);
 </script>
-
 </body>
 </html>
