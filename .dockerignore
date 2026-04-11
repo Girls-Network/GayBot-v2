@@ -1,4 +1,4 @@
-# Copyright (c) 2026 Girls Network
+# Copyright (c) 2026 Aria Rees & Clove Nytrix Doughmination Twilight
 # Licensed under the MIT Licence.
 # See LICENCE in the project root for full licence information.
 

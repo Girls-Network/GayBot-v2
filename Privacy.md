@@ -1,9 +1,9 @@
 # Privacy Policy
 
-**Effective Date:** 23 February 2026
-**Last Updated:** 23 February 2026
+**Effective Date:** 11th April 2026
+**Last Updated:** 11th April 2026
 
-This Privacy Policy explains how GayBot ("the Bot"), operated by Girls Network Technologies Ltd ("we", "us", or "our"), collects, uses, and handles information when you use the Bot in your Discord server.
+This Privacy Policy explains how GayBot ("the Bot"), operated by Aria Rees & Clove Nytrix Doughmination Twilight ("we", "us", or "our"), collects, uses, and handles information when you use the Bot in your Discord server.
 
 ---
 
@@ -42,7 +42,7 @@ The information processed by GayBot is used solely to:
 
 ## 3. Data Storage and Retention
 
-GayBot does **not** operate a database. No user data is persistently stored by the Bot itself.
+GayBot does operate a database. The only user data is persistently stored by the Bot itself is data given by the users to the system, and this data can be removed anytime.
 
 **Error logs** are written locally to the host environment and contain only timestamps, error messages, and command context. These logs are retained temporarily for operational purposes and are not shared externally.
 
@@ -53,7 +53,7 @@ GayBot does **not** operate a database. No user data is persistently stored by t
 GayBot may interact with the following third-party services:
 
 - **Discord API** – All Bot functionality is delivered via the Discord API. Discord's own [Privacy Policy](https://discord.com/privacy) governs how Discord handles your data.
-- **girlsnetwork.dev API** – The `/lgbtqsearch` command queries the Girls Network public API to retrieve definitions. The search term you submit is sent to this API. No personally identifiable information is transmitted.
+- **GayBotAPI** – The `/lgbtqsearch` command queries the GayBotAPI to retrieve definitions. The search term you submit is sent to this API. No personally identifiable information is transmitted.
 
 ---
 
@@ -85,6 +85,6 @@ We may update this Privacy Policy from time to time. Continued use of GayBot fol
 
 ## 9. Contact
 
-Girls Network Technologies Ltd
+Aria Rees & Clove Nytrix Doughmination Twilight
 GitHub: [https://github.com/Girls-Network](https://github.com/Girls-Network)
 Email: [support@girlsnetwork.dev](mailto:support@girlsnetwork.dev)

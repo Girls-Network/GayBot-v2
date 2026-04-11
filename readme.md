@@ -1,7 +1,8 @@
 # 🏳️‍⚧️GayBot🏳️‍🌈
+> by Aria Rees & Clove Nytrix Doughmination Twilight
 
 ### Installation
-The easiest and fastest way to install the bot is by using the [official Discord install link](https://discord.com/oauth2/authorize?client_id=1386796424720810234&permissions=67648&integration_type=0&scope=bot+applications.commands)
+The easiest and fastest way to install the bot is by using the [official Discord install link](https://discord.com/oauth2/authorize?client_id=1475380726643032064)
 
 ### Tech Stack
 <div align="center">

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Girls Network
+ * Copyright (c) 2026 Aria Rees & Clove Nytrix Doughmination Twilight
  * Licensed under the MIT Licence.
  * See LICENCE in the project root for full licence information.
  */
@@ -63,6 +63,6 @@ export function asciiArt(): void {
 
 export function logBoot(): void {
     console.log(chalk.magentaBright('\n╔═══════════════════════════════════╗'));
-    console.log(chalk.magentaBright('║  Girls Network Technologies Ltd   ║'));
+    console.log(chalk.magentaBright('║  Aria Rees & Clove Nytrix Doughmination Twilight   ║'));
     console.log(chalk.magentaBright('╚═══════════════════════════════════╝\n'));
 } 

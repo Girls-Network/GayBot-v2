@@ -1,9 +1,9 @@
 # Terms of Service
 
-**Effective Date:** 23 February 2026
-**Last Updated:** 23 February 2026
+**Effective Date:** 11th April 2026
+**Last Updated:** 11th April 2026
 
-These Terms of Service ("Terms") govern your use of GayBot ("the Bot"), a Discord bot operated by Girls Network Technologies Ltd ("we", "us", or "our"). By adding GayBot to your server or interacting with it, you agree to these Terms.
+These Terms of Service ("Terms") govern your use of GayBot ("the Bot"), a Discord bot operated by Aria Rees & Clove Nytrix Doughmination Twilight ("we", "us", or "our"). By adding GayBot to your server or interacting with it, you agree to these Terms.
 
 ---
 
@@ -22,7 +22,7 @@ You agree to use GayBot only for lawful purposes and in accordance with these Te
 - Violate any applicable local, national, or international law or regulation.
 - Attempt to abuse, exploit, or interfere with the Bot's functionality or the underlying infrastructure.
 - Attempt to reverse-engineer, decompile, or extract the source code of the Bot beyond what is already publicly available under the project's licence.
-- Use the Bot for any commercial purpose without express written permission from Girls Network Technologies Ltd.
+- Use the Bot for any commercial purpose without express written permission from Aria Rees & Clove Nytrix Doughmination Twilight.
 
 ---
 
@@ -31,7 +31,7 @@ You agree to use GayBot only for lawful purposes and in accordance with these Te
 GayBot provides the following features:
 
 - `/gaycounter` – A fun, randomised command for entertainment purposes only. Results have no basis in fact.
-- `/lgbtqsearch` – Queries the Girls Network public API to provide definitions of LGBTQIA+ terms.
+- `/lgbtqsearch` – Queries the GayBotAPI to provide definitions of LGBTQIA+ terms.
 - `/ping` – Returns latency information.
 - `/help` – Lists available commands.
 - **Keyword Reactions** – Automatically reacts to messages containing certain keywords with relevant emoji.
@@ -48,13 +48,13 @@ We make no guarantee that GayBot will be available at all times. The Bot may be 
 
 ## 5. Licence
 
-GayBot's source code is licensed under the **Girls Network Non-Commercial Source Licence (GN-NCSL-1.1)**. Use of the Bot itself is permitted free of charge for non-commercial purposes. Commercial use of the Bot or its source code is strictly prohibited without prior written permission. See the [LICENCE](./LICENCE) file for full details.
+GayBot's source code is licensed under the **MIT LICENCE.** See the [LICENCE](./LICENCE) file for full details.
 
 ---
 
 ## 6. Intellectual Property
 
-All content, branding, and code associated with GayBot are the property of Girls Network Technologies Ltd, unless otherwise stated. You may not use our name, logo, or other intellectual property without explicit permission.
+All content, branding, and code associated with GayBot are the property of Aria Rees & Clove Nytrix Doughmination Twilight, unless otherwise stated. You may not use our name, logo, or other intellectual property without explicit permission.
 
 ---
 
@@ -72,7 +72,7 @@ GayBot is provided **"as is"** and **"as available"**, without warranty of any k
 
 ## 9. Limitation of Liability
 
-To the fullest extent permitted by applicable law, Girls Network Technologies Ltd shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use GayBot.
+To the fullest extent permitted by applicable law, Aria Rees & Clove Nytrix Doughmination Twilight shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of or inability to use GayBot.
 
 ---
 
@@ -98,6 +98,6 @@ These Terms are governed by the laws of England and Wales. Any disputes shall be
 
 ## 13. Contact
 
-Girls Network Technologies Ltd
+Aria Rees & Clove Nytrix Doughmination Twilight
 GitHub: [https://github.com/Girls-Network](https://github.com/Girls-Network)
 Email: [support@girlsnetwork.dev](mailto:support@girlsnetwork.dev)

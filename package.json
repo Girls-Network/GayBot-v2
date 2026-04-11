@@ -16,7 +16,7 @@
         "url": "git+https://github.com/Girls-Network/GayBot.git"
     },
     "license": "SEE LICENCE IN LICENCE",
-    "author": "Girls Network Technologies Ltd",
+    "author": "Aria Rees & Clove Nytrix Doughmination Twilight",
     "scripts": {
         "test": "npm run build && node dist/shard.js",
         "build": "tsc",
