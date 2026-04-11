@@ -13,7 +13,7 @@ import hugGifs from '../configs/hug.json';
 
 export default {
     data: {
-        name: 'yuri',
+        name: 'hug',
         description: 'Posts a random hugging gif!',
         options: [
             {
@@ -36,7 +36,7 @@ export default {
             .setImage(gif);
 
         await interaction.reply({
-            content: `*${interaction.user} kisses ${targetUser}!* 🌸`,
+            content: `*${interaction.user} hugs ${targetUser}!* 🫂`,
             embeds: [embed],
         });
     },
