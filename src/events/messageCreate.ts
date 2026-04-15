@@ -5,12 +5,7 @@
  */
 
 import { Message } from 'discord.js';
-import { KeywordChecker } from '../utils/reactionSystem';
-
-interface ReactionQueueEntry {
-    message: Message;
-    emoji: string;
-}
+import { KeywordChecker, ReactionQueueEntry } from '../utils/reactionSystem';
 
 interface ExtendedClient {
     reactionQueue: ReactionQueueEntry[];
@@ -26,15 +21,10 @@ export default {
         if (!message.content) return;
 
         const client = message.client as unknown as ExtendedClient;
-        const matchingEmojis = keywordChecker.getMatchingEmojis(message.content);
+        const matches = keywordChecker.getMatchingEmojis(message.content);
 
-        if (matchingEmojis.length > 0) {
-            for (const emoji of matchingEmojis) {
-                client.reactionQueue.push({
-                    message: message,
-                    emoji: emoji
-                });
-            }
+        for (const { emoji, title } of matches) {
+            client.reactionQueue.push({ message, emoji, title });
         }
     },
 };

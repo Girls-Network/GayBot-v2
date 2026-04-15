@@ -10,23 +10,19 @@ import {
     ApplicationCommandOptionType
 } from 'discord.js';
 
-// Override map for specific user IDs
 const gaynessOverrides = new Map<string, number>([
-    ['652597508027187240', 101], // @transbian
+    ['652597508027187240', 1000], // @transbian
     ['1125844710511104030', 69], // @doughmination.system
     ['908055723659898902', 420], // @lillybanana.7z
+    ['855122091791089664', 54], // @primrosethelesbianlady
     ['1110542429838397471', 200], // @msmoscar
     ['527709099186716673', 200] // @theawesometaco
 ]);
 
 function calculateGayness(userId: string): number {
-    // Check for override first
     if (gaynessOverrides.has(userId)) {
         return gaynessOverrides.get(userId)!;
     }
-    
-    // Just random per use
-    // Not Math.random * 100, as it doesn't include 0 and 100 (common misconception)
     const gayness = Math.floor(Math.random() * 101)
     return gayness
 
@@ -41,14 +37,12 @@ export default {
                 type: ApplicationCommandOptionType.User,
                 name: 'target',
                 description: 'The user to check.',
-                required: false // Changed to false
+                required: false
             }
         ],
     },
     async execute(interaction: CommandInteraction, client: any) {
         if (!interaction.isChatInputCommand()) return;
-
-        // Get target user or default to command user
         const targetUser = interaction.options.getUser('target') || interaction.user;
 
         await interaction.deferReply();

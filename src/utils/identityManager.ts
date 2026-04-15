@@ -4,75 +4,44 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import { readUserFile, writeUserFile, deleteUserFile, IdentityData } from './dataManager';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-
-export interface IdentityData {
-    user_id: string;
-    pronouns?: string;
-    gender?: string;
-    sexuality?: string;
-    romantic?: string;
-    flag?: string;
-    bio?: string;
-    updated_at: string;
-}
-
-function ensureDataDir(): void {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-}
-
-function getFilePath(userId: string): string {
-    return path.join(DATA_DIR, `${userId}.json`);
-}
+// Re-export IdentityData so existing imports from identityManager still work
+export type { IdentityData };
 
 export function getIdentity(userId: string): IdentityData | null {
-    ensureDataDir();
-    const filePath = getFilePath(userId);
-
-    if (!fs.existsSync(filePath)) {
-        return null;
-    }
-
-    try {
-        const raw = fs.readFileSync(filePath, 'utf-8');
-        return JSON.parse(raw) as IdentityData;
-    } catch {
-        return null;
-    }
+    return readUserFile(userId).identity ?? null;
 }
 
 export function setIdentity(
     userId: string,
-    fields: Partial<Omit<IdentityData, 'user_id' | 'updated_at'>>
+    fields: Partial<Omit<IdentityData, 'updated_at'>>
 ): IdentityData {
-    ensureDataDir();
+    const file = readUserFile(userId);
+    const existing = file.identity ?? { updated_at: '' };
 
-    // Merge with existing so partial updates don't wipe other fields
-    const existing = getIdentity(userId) ?? { user_id: userId, updated_at: '' };
     const updated: IdentityData = {
         ...existing,
         ...fields,
-        user_id: userId,
         updated_at: new Date().toISOString(),
     };
 
-    fs.writeFileSync(getFilePath(userId), JSON.stringify(updated, null, 2), 'utf-8');
+    writeUserFile(userId, { ...file, identity: updated });
     return updated;
 }
 
 export function clearIdentity(userId: string): boolean {
-    ensureDataDir();
-    const filePath = getFilePath(userId);
+    const file = readUserFile(userId);
+    if (!file.identity) return false;
 
-    if (!fs.existsSync(filePath)) {
-        return false;
+    const { identity: _, ...rest } = file;
+
+    // If nothing else is left in the file, delete it entirely
+    if (Object.keys(rest).length === 0) {
+        deleteUserFile(userId);
+    } else {
+        writeUserFile(userId, rest);
     }
 
-    fs.unlinkSync(filePath);
     return true;
 }

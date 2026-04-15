@@ -6,6 +6,7 @@
 
 import { Message, PartialMessage } from 'discord.js';
 import emojiConfigData from '../configs/emoji-config.json';
+import { isReactionAllowed } from './reactionPreferences';
 import chalk from 'chalk';
 
 interface EmojiConfig {
@@ -14,9 +15,10 @@ interface EmojiConfig {
     keywords: string[];
 }
 
-interface ReactionQueueEntry {
+export interface ReactionQueueEntry {
     message: Message | PartialMessage;
     emoji: string;
+    title: string;
 }
 
 // Load emoji configuration
@@ -30,13 +32,14 @@ export class KeywordChecker {
         this.emojiMap = emojis;
     }
 
-    public getMatchingEmojis(messageContent: string): string[] {
+    /** Returns matched { emoji, title } pairs for a given message string. */
+    public getMatchingEmojis(messageContent: string): { emoji: string; title: string }[] {
         if (!messageContent || typeof messageContent !== 'string') {
             return [];
         }
 
         const lowerMessage = messageContent.toLowerCase();
-        const foundEmojis = new Set<string>();
+        const found = new Map<string, string>(); // emoji → title
 
         this.emojiMap.forEach(item => {
             const matchFound = item.keywords.some(keyword => {
@@ -44,7 +47,6 @@ export class KeywordChecker {
 
                 // Check if keyword is a Discord mention
                 if (lowerKeyword.startsWith('<@') && lowerKeyword.endsWith('>')) {
-                    // For mentions, do exact string matching (case-insensitive)
                     return lowerMessage.includes(lowerKeyword);
                 }
 
@@ -66,12 +68,12 @@ export class KeywordChecker {
                 return regex.test(lowerMessage);
             });
 
-            if (matchFound) {
-                foundEmojis.add(item.emoji);
+            if (matchFound && !found.has(item.emoji)) {
+                found.set(item.emoji, item.title);
             }
         });
 
-        return Array.from(foundEmojis);
+        return Array.from(found.entries()).map(([emoji, title]) => ({ emoji, title }));
     }
 }
 
@@ -89,6 +91,16 @@ export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise
     if (entry) {
         try {
             const message = await entry.message.fetch();
+
+            const userId  = message.author?.id ?? null;
+            const guildId = message.guildId ?? null;
+
+            if (!userId || !isReactionAllowed(entry.title, userId, guildId)) {
+                isProcessing = false;
+                if (queue.length > 0) setTimeout(() => processReactionQueue(queue), 500);
+                return;
+            }
+
             await message.react(entry.emoji);
         } catch (error) {
             console.error(chalk.redBright`Failed to react with ${entry.emoji}:`, error);
