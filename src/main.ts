@@ -8,15 +8,10 @@ import { Client, GatewayIntentBits, Collection, ActivityType } from 'discord.js'
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadCommands, deployCommands } from './handlers/commandHandler';
-import { processReactionQueue } from './utils/reactionSystem';
+import { processReactionQueue, ReactionQueueEntry } from './utils/reactionSystem';
 import { logBoot, asciiArt, log, logError } from './utils/logger';
 import { startBannerRotater } from './utils/bannerRotator';
 import chalk from 'chalk';
-
-interface ReactionQueueEntry {
-    message: any;
-    emoji: string;
-}
 
 interface ExtendedClient extends Client {
     commands: Collection<string, any>;
