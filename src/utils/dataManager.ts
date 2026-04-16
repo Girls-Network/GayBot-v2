@@ -31,12 +31,16 @@ export interface ReactionData {
 }
 
 export interface UserFile {
-    identity?:  IdentityData;
-    reactions?: ReactionData;
+    identity?:          IdentityData;
+    reactions?:         ReactionData;
+    /** Subcommand keys (e.g. "yuri kiss") the user has opted out of being targeted by. */
+    disabled_commands?: string[];
 }
 
 export interface GuildFile {
-    reactions?: ReactionData;
+    reactions?:         ReactionData;
+    /** Subcommand keys (e.g. "yuri kiss") disabled server-wide by an admin. */
+    disabled_commands?: string[];
 }
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────

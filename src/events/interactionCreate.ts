@@ -4,28 +4,47 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import { 
-    Interaction, 
-    EmbedBuilder, 
-    ActionRowBuilder, 
-    ButtonBuilder, 
+import {
+    Interaction,
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
     ButtonStyle,
-    Collection
+    Collection,
+    MessageFlags,
 } from 'discord.js';
 import { handleCommandError, handleInteractionError } from '../handlers/errorHandler';
+import { readGuildFile, readUserFile } from '../utils/dataManager';
 
 interface ExtendedClient {
     commands: Collection<string, any>;
+    toggleableCommands: string[];
 }
 
 const COMMANDS_PER_PAGE = 5;
+
+/**
+ * Build the subcommand key for an interaction, e.g. "yuri kiss" or "gaycounter".
+ * Matches the relKey format produced by the command loader.
+ */
+function getSubcommandKey(interaction: any): string {
+    try {
+        const group = interaction.options?.getSubcommandGroup(false);
+        const sub   = interaction.options?.getSubcommand(false);
+        if (group && sub) return `${interaction.commandName} ${group} ${sub}`;
+        if (sub)          return `${interaction.commandName} ${sub}`;
+    } catch {
+        // No subcommand
+    }
+    return interaction.commandName;
+}
 
 export default {
     name: 'interactionCreate',
     async execute(interaction: Interaction) {
         const client = interaction.client as unknown as ExtendedClient;
 
-        // Handle autocomplete
+        // ── Autocomplete ──────────────────────────────────────────────────
         if (interaction.isAutocomplete()) {
             const command = client.commands.get(interaction.commandName);
             if (!command?.autocomplete) return;
@@ -37,10 +56,40 @@ export default {
             return;
         }
 
-        // Handle slash commands
+        // ── Slash commands ────────────────────────────────────────────────
         if (interaction.isChatInputCommand()) {
             const command = client.commands.get(interaction.commandName);
             if (!command) return;
+
+            // Only gate toggleable commands
+            if (command.toggle) {
+                const key = getSubcommandKey(interaction);
+
+                // 1. Guild-level check
+                if (interaction.guildId) {
+                    const guildData = readGuildFile(interaction.guildId);
+                    if (guildData.disabled_commands?.includes(key)) {
+                        await interaction.reply({
+                            content: '❌ This command has been disabled in this server.',
+                            flags: MessageFlags.Ephemeral,
+                        });
+                        return;
+                    }
+                }
+
+                // 2. Target user check — only relevant if the command takes a 'target' user option
+                const targetUser = interaction.options.getUser('target');
+                if (targetUser) {
+                    const targetData = readUserFile(targetUser.id);
+                    if (targetData.disabled_commands?.includes(key)) {
+                        await interaction.reply({
+                            content: `❌ ${targetUser} has disabled this command.`,
+                            flags: MessageFlags.Ephemeral,
+                        });
+                        return;
+                    }
+                }
+            }
 
             try {
                 await command.execute(interaction, client);
@@ -49,7 +98,7 @@ export default {
             }
         }
 
-        // Handle help pagination buttons
+        // ── Help pagination buttons ───────────────────────────────────────
         if (interaction.isButton()) {
             const [action, currentPageStr] = interaction.customId.split(':');
             if (!action.startsWith('help_')) return;

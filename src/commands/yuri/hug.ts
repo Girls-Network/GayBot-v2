@@ -9,18 +9,26 @@ import {
     EmbedBuilder,
     ApplicationCommandOptionType,
 } from 'discord.js';
-import yuriGifs from '../configs/yuri.json';
+import hugGifs from '../../configs/yuri/hug.json';
 
 export default {
+    toggle: true,
     data: {
         name: 'yuri',
-        description: 'Posts a random yuri gif! 🌸',
+        description: 'Yuri commands 🌸',
         options: [
             {
-                type: ApplicationCommandOptionType.User,
-                name: 'target',
-                description: 'The user to kiss.',
-                required: true,
+                type: ApplicationCommandOptionType.Subcommand,
+                name: 'hug',
+                description: 'Posts a random hug gif! 🫂',
+                options: [
+                    {
+                        type: ApplicationCommandOptionType.User,
+                        name: 'target',
+                        description: 'The user to hug.',
+                        required: true,
+                    },
+                ],
             },
         ],
     },
@@ -29,14 +37,14 @@ export default {
         if (!interaction.isChatInputCommand()) return;
 
         const targetUser = interaction.options.getUser('target', true);
-        const gif = yuriGifs[Math.floor(Math.random() * yuriGifs.length)];
+        const gif = hugGifs[Math.floor(Math.random() * hugGifs.length)];
 
         const embed = new EmbedBuilder()
             .setColor(0xff69b4)
             .setImage(gif);
 
         await interaction.reply({
-            content: `*${interaction.user} kisses ${targetUser}!* 🌸`,
+            content: `*${interaction.user} hugs ${targetUser}!* 🫂`,
             embeds: [embed],
         });
     },

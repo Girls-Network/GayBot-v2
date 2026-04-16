@@ -9,18 +9,26 @@ import {
     EmbedBuilder,
     ApplicationCommandOptionType,
 } from 'discord.js';
-import hugGifs from '../configs/hug.json';
+import boopGifs from '../../configs/yuri/boop.json';
 
 export default {
+    toggle: true,
     data: {
-        name: 'hug',
-        description: 'Posts a random hugging gif!',
+        name: 'yuri',
+        description: 'Yuri commands 🌸',
         options: [
             {
-                type: ApplicationCommandOptionType.User,
-                name: 'target',
-                description: 'The user to hug.',
-                required: true,
+                type: ApplicationCommandOptionType.Subcommand,
+                name: 'boop',
+                description: 'Posts a random boop gif! 🌸',
+                options: [
+                    {
+                        type: ApplicationCommandOptionType.User,
+                        name: 'target',
+                        description: 'The user to boop.',
+                        required: true,
+                    },
+                ],
             },
         ],
     },
@@ -29,14 +37,14 @@ export default {
         if (!interaction.isChatInputCommand()) return;
 
         const targetUser = interaction.options.getUser('target', true);
-        const gif = hugGifs[Math.floor(Math.random() * hugGifs.length)];
+        const gif = boopGifs[Math.floor(Math.random() * boopGifs.length)];
 
         const embed = new EmbedBuilder()
             .setColor(0xff69b4)
             .setImage(gif);
 
         await interaction.reply({
-            content: `*${interaction.user} hugs ${targetUser}!* 🫂`,
+            content: `*${interaction.user} boops ${targetUser}!* 🌸`,
             embeds: [embed],
         });
     },

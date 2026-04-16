@@ -1,0 +1,171 @@
+/*
+ * Copyright (c) 2026 Aria Rees & Clove Nytrix Doughmination Twilight
+ * Licensed under the MIT Licence.
+ * See LICENCE in the project root for full licence information.
+ */
+
+import {
+    CommandInteraction,
+    AutocompleteInteraction,
+    EmbedBuilder,
+    ApplicationCommandOptionType,
+    MessageFlags,
+} from 'discord.js';
+import {
+    ALL_EMOJI_TITLES,
+    titleToEmoji,
+    getUserReactionPrefs,
+    disableAllUserReactions,
+    enableAllUserReactions,
+    disableUserEmojis,
+    enableUserEmojis,
+    ReactionData,
+} from '../../utils/reactionPreferences';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function buildStatusEmbed(prefs: ReactionData, displayName: string): EmbedBuilder {
+    const allDisabled  = prefs.disabled_emojis.length === ALL_EMOJI_TITLES.length;
+    const noneDisabled = prefs.disabled_emojis.length === 0;
+
+    let statusLine: string;
+    if (allDisabled)       statusLine = '🔴 All reactions disabled';
+    else if (noneDisabled) statusLine = '🟢 All reactions enabled';
+    else                   statusLine = `🟡 Some reactions disabled (${prefs.disabled_emojis.length}/${ALL_EMOJI_TITLES.length})`;
+
+    const disabledList = prefs.disabled_emojis.length > 0
+        ? prefs.disabled_emojis.map(t => `${titleToEmoji(t) ?? ''} ${t}`.trim()).join('\n')
+        : '_None_';
+
+    const enabledList = ALL_EMOJI_TITLES
+        .filter(t => !prefs.disabled_emojis.includes(t))
+        .map(t => `${titleToEmoji(t) ?? ''} ${t}`.trim())
+        .join('\n') || '_None_';
+
+    return new EmbedBuilder()
+        .setTitle(`👤 Reaction Preferences — ${displayName}`)
+        .setDescription(statusLine)
+        .addFields(
+            { name: '✅ Enabled', value: enabledList, inline: true },
+            { name: '❌ Disabled', value: disabledList, inline: true },
+        )
+        .setColor(allDisabled ? 0xED4245 : noneDisabled ? 0x57F287 : 0xFEE75C);
+}
+
+// ─── Command ──────────────────────────────────────────────────────────────────
+
+export default {
+    data: {
+        name: 'user',
+        description: 'Manage your personal preferences.',
+        options: [
+            {
+                type: ApplicationCommandOptionType.SubcommandGroup,
+                name: 'reactions',
+                description: 'Manage which reactions the bot adds to your messages.',
+                options: [
+                    {
+                        type: ApplicationCommandOptionType.Subcommand,
+                        name: 'disable',
+                        description: 'Disable a reaction or all reactions on your messages.',
+                        options: [
+                            {
+                                type: ApplicationCommandOptionType.String,
+                                name: 'reaction',
+                                description: 'Reaction to disable, or "All".',
+                                required: true,
+                                autocomplete: true,
+                            },
+                        ],
+                    },
+                    {
+                        type: ApplicationCommandOptionType.Subcommand,
+                        name: 'enable',
+                        description: 'Re-enable a reaction or all reactions on your messages.',
+                        options: [
+                            {
+                                type: ApplicationCommandOptionType.String,
+                                name: 'reaction',
+                                description: 'Reaction to re-enable, or "All".',
+                                required: true,
+                                autocomplete: true,
+                            },
+                        ],
+                    },
+                    {
+                        type: ApplicationCommandOptionType.Subcommand,
+                        name: 'status',
+                        description: 'View your current reaction preferences.',
+                    },
+                ],
+            },
+        ],
+    },
+
+    async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+        const sub     = interaction.options.getSubcommand();
+        const focused = interaction.options.getFocused().toLowerCase();
+        const prefs   = getUserReactionPrefs(interaction.user.id);
+
+        let candidates: string[] = [];
+
+        if (sub === 'disable') {
+            const notYet = ALL_EMOJI_TITLES.filter(t => !prefs.disabled_emojis.includes(t));
+            candidates = notYet.length > 0 ? ['All', ...notYet] : [];
+        } else if (sub === 'enable') {
+            candidates = prefs.disabled_emojis.length > 0 ? ['All', ...prefs.disabled_emojis] : [];
+        }
+
+        await interaction.respond(
+            candidates
+                .filter(c => c.toLowerCase().includes(focused))
+                .slice(0, 25)
+                .map(c => ({ name: c, value: c }))
+        );
+    },
+
+    async execute(interaction: CommandInteraction, _client: any): Promise<void> {
+        if (!interaction.isChatInputCommand()) return;
+
+        const sub = interaction.options.getSubcommand();
+
+        // ── status ────────────────────────────────────────────────────────
+        if (sub === 'status') {
+            const prefs = getUserReactionPrefs(interaction.user.id);
+            const embed = buildStatusEmbed(prefs, interaction.user.displayName);
+            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            return;
+        }
+
+        const reaction = interaction.options.getString('reaction', true);
+
+        // ── disable ───────────────────────────────────────────────────────
+        if (sub === 'disable') {
+            const prefs = reaction === 'All'
+                ? disableAllUserReactions(interaction.user.id)
+                : disableUserEmojis(interaction.user.id, [reaction]);
+
+            const label = reaction === 'All' ? 'All reactions' : `**${reaction}**`;
+            const emoji = reaction === 'All' ? '' : (titleToEmoji(reaction) ?? '');
+            await interaction.reply({
+                content: `✅ ${emoji} ${label} disabled on your messages.`.trim(),
+                flags: MessageFlags.Ephemeral,
+            });
+            return;
+        }
+
+        // ── enable ────────────────────────────────────────────────────────
+        if (sub === 'enable') {
+            const prefs = reaction === 'All'
+                ? enableAllUserReactions(interaction.user.id)
+                : enableUserEmojis(interaction.user.id, [reaction]);
+
+            const label = reaction === 'All' ? 'All reactions' : `**${reaction}**`;
+            const emoji = reaction === 'All' ? '' : (titleToEmoji(reaction) ?? '');
+            await interaction.reply({
+                content: `✅ ${emoji} ${label} re-enabled on your messages.`.trim(),
+                flags: MessageFlags.Ephemeral,
+            });
+        }
+    },
+};
