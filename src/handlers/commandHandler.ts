@@ -9,18 +9,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { log, logError } from '../utils/logger';
 import chalk from 'chalk';
+import { ExtendedClient } from '../utils/ExtendedClient';
 
-interface BotCommand {
+export interface BotCommand {
     toggle?: boolean;
     data: any;
     execute: (interaction: any, client: any) => Promise<void>;
     autocomplete?: (interaction: any) => Promise<void>;
-}
-
-interface ExtendedClient extends Client {
-    commands: Collection<string, BotCommand>;
-    /** Subcommand keys (e.g. "yuri kiss") that have toggle: true */
-    toggleableCommands: string[];
 }
 
 interface CommandIdLog {

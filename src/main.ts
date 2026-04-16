@@ -12,11 +12,7 @@ import { processReactionQueue, ReactionQueueEntry } from './utils/reactionSystem
 import { logBoot, asciiArt, log, logError } from './utils/logger';
 import { startBannerRotater } from './utils/bannerRotator';
 import chalk from 'chalk';
-
-interface ExtendedClient extends Client {
-    commands: Collection<string, any>;
-    reactionQueue: ReactionQueueEntry[];
-}
+import { ExtendedClient } from './utils/ExtendedClient';
 
 // Initialize client
 const client = new Client({
@@ -30,6 +26,7 @@ const client = new Client({
 // Initialize properties
 client.commands = new Collection();
 client.reactionQueue = [];
+client.toggleableCommands = [];
 
 // Load events
 async function loadEvents() {
