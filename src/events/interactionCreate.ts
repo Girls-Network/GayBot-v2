@@ -25,6 +25,18 @@ export default {
     async execute(interaction: Interaction) {
         const client = interaction.client as unknown as ExtendedClient;
 
+        // Handle autocomplete
+        if (interaction.isAutocomplete()) {
+            const command = client.commands.get(interaction.commandName);
+            if (!command?.autocomplete) return;
+            try {
+                await command.autocomplete(interaction);
+            } catch (error) {
+                console.error('Autocomplete error:', error);
+            }
+            return;
+        }
+
         // Handle slash commands
         if (interaction.isChatInputCommand()) {
             const command = client.commands.get(interaction.commandName);
