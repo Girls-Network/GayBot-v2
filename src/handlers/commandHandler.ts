@@ -19,6 +19,29 @@ interface ExtendedClient extends Client {
     commands: Collection<string, BotCommand>;
 }
 
+interface CommandIdLog {
+    deployed_at: string;
+    commands: Record<string, string>;
+}
+
+const ID_LOG_PATH = path.join(process.cwd(), 'data', 'ids.json');
+
+function writeCommandIdLog(commands: { name: string; id: string }[]): void {
+    const data: CommandIdLog = {
+        deployed_at: new Date().toISOString(),
+        commands: Object.fromEntries(commands.map(c => [c.name, c.id])),
+    };
+
+    // Ensure data/ exists
+    const dir = path.dirname(ID_LOG_PATH);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    fs.writeFileSync(ID_LOG_PATH, JSON.stringify(data, null, 2), 'utf-8');
+    log(chalk.cyanBright(`Command IDs written to data/ids.json`));
+}
+
 export async function loadCommands(client: ExtendedClient): Promise<void> {
     client.commands = new Collection();
     const commandsPath = path.join(__dirname, '../commands');
@@ -32,14 +55,13 @@ export async function loadCommands(client: ExtendedClient): Promise<void> {
             client.commands.set(command.data.name, command);
         }
     }
-    
+
     log(chalk.cyanBright('Loading commands'));
 }
 
 export async function deployCommands(client: ExtendedClient): Promise<void> {
-    const TOKEN = process.env.GAYBOT_TOKEN;
+    const TOKEN     = process.env.GAYBOT_TOKEN;
     const CLIENT_ID = process.env.GAYBOT_CLIENT_ID;
-    const GUILD_ID = process.env.GAYBOT_GUILD_ID;
 
     if (!CLIENT_ID || !TOKEN) {
         logError(new Error('Missing CLIENT_ID or BOT_TOKEN'), 'Commands');
@@ -53,7 +75,6 @@ export async function deployCommands(client: ExtendedClient): Promise<void> {
 
     const rest = new REST({ version: '10' }).setToken(TOKEN);
 
-    // Add integration_types and contexts to each command for user install support
     const commands = client.commands.map(cmd => ({
         ...cmd.data,
         integration_types: [0, 1], // GUILD_INSTALL (0), USER_INSTALL (1)
@@ -61,25 +82,16 @@ export async function deployCommands(client: ExtendedClient): Promise<void> {
     }));
 
     try {
-        log(chalk.yellow('Deploying commands'));
-        
-        // Always deploy globally
-        log(chalk.yellow('Deploying globally (may take up to 1 hour to propagate)'));
-        await rest.put(
+        log(chalk.yellow('Deploying commands globally (may take up to 1 hour to propagate)'));
+
+        const deployed = await rest.put(
             Routes.applicationCommands(CLIENT_ID),
             { body: commands }
-        );
+        ) as { name: string; id: string }[];
+
         log(chalk.greenBright('Global commands deployed successfully'));
-        
-        // Additionally deploy to test guild if specified (instant)
-        if (GUILD_ID) {
-            log(chalk.yellow(`Also deploying to guild ${GUILD_ID} for instant testing`));
-            await rest.put(
-                Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-                { body: commands }
-            );
-            log(chalk.greenBright('Guild commands deployed successfully'));
-        }
+
+        writeCommandIdLog(deployed);
     } catch (error) {
         logError(error, 'Commands');
     }
