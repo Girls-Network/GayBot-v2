@@ -4,7 +4,7 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import { Client, Collection, REST, Routes } from 'discord.js';
+import { Client, Collection, REST, Routes, SlashCommandBuilder } from 'discord.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { log, logError } from '../utils/logger';
@@ -18,52 +18,24 @@ export interface BotCommand {
     autocomplete?: (interaction: any) => Promise<void>;
 }
 
-interface CommandIdLog {
-    deployed_at: string;
-    commands: Record<string, string>;
-}
+// ─── File collection ──────────────────────────────────────────────────────────
 
-const ID_LOG_PATH = path.join(process.cwd(), 'data', 'ids.json');
-
-function writeCommandIdLog(commands: { name: string; id: string }[]): void {
-    const data: CommandIdLog = {
-        deployed_at: new Date().toISOString(),
-        commands: Object.fromEntries(commands.map(c => [c.name, c.id])),
-    };
-
-    const dir = path.dirname(ID_LOG_PATH);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-    fs.writeFileSync(ID_LOG_PATH, JSON.stringify(data, null, 2), 'utf-8');
-    log(chalk.cyanBright('Command IDs written to data/ids.json'));
-}
-
-/**
- * Recursively collect all .js/.ts command files under a directory.
- * Files are keyed by their path relative to the commands root so we
- * can derive the subcommand group name (e.g. "yuri/kiss" → "yuri kiss").
- */
 function collectCommandFiles(dir: string, root: string): { filePath: string; relKey: string }[] {
     const results: { filePath: string; relKey: string }[] = [];
-
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
-
         if (entry.isDirectory()) {
             results.push(...collectCommandFiles(full, root));
         } else if (entry.name.endsWith('.js') || entry.name.endsWith('.ts')) {
-            // relKey: e.g. "yuri/kiss" or "ping"
             const rel = path.relative(root, full);
-            const relKey = rel
-                .replace(/\.(js|ts)$/, '')
-                .split(path.sep)
-                .join(' ');
+            const relKey = rel.replace(/\.(js|ts)$/, '').split(path.sep).join(' ');
             results.push({ filePath: full, relKey });
         }
     }
-
     return results;
 }
+
+// ─── Loader ───────────────────────────────────────────────────────────────────
 
 export async function loadCommands(client: ExtendedClient): Promise<void> {
     client.commands = new Collection();
@@ -72,21 +44,135 @@ export async function loadCommands(client: ExtendedClient): Promise<void> {
     const commandsRoot = path.join(__dirname, '../commands');
     const files = collectCommandFiles(commandsRoot, commandsRoot);
 
+    // Group raw modules by their top-level command name
+    // e.g. "admin commands" and "admin reactions" both go under "admin"
+    const grouped = new Map<string, { relKey: string; mod: BotCommand }[]>();
+
     for (const { filePath, relKey } of files) {
-        const command: BotCommand = require(filePath).default;
-        if (!command?.data?.execute && !command?.execute) continue;
-        if (!command.data || !command.execute) continue;
+        const mod: BotCommand = require(filePath).default;
+        if (!mod?.data || !mod?.execute) continue;
 
-        // Store under the top-level command name for dispatch
-        client.commands.set(command.data.name, command);
+        const topLevel: string = mod.data.name;
+        if (!grouped.has(topLevel)) grouped.set(topLevel, []);
+        grouped.get(topLevel)!.push({ relKey, mod });
+    }
 
-        // If toggleable, record the full subcommand key
-        if (command.toggle) {
-            client.toggleableCommands.push(relKey);
+    for (const [topLevelName, entries] of grouped) {
+        if (entries.length === 1) {
+            // Single file for this command — register as-is
+            const { relKey, mod } = entries[0];
+            client.commands.set(topLevelName, mod);
+            if (mod.toggle) client.toggleableCommands.push(relKey);
+            log(chalk.cyanBright(`  Loaded /${topLevelName}`));
+        } else {
+            // Multiple files share a top-level name — merge their subcommand groups
+            const merged = buildMergedCommand(topLevelName, entries, client);
+            client.commands.set(topLevelName, merged);
+            log(chalk.cyanBright(`  Merged /${topLevelName} (${entries.length} files)`));
         }
     }
 
-    log(chalk.cyanBright(`Loading commands (${client.commands.size} top-level, ${client.toggleableCommands.length} toggleable)`));
+    log(chalk.cyanBright(
+        `Commands loaded — ${client.commands.size} top-level, ` +
+        `${client.toggleableCommands.length} toggleable`
+    ));
+}
+
+// ─── Merge helper ─────────────────────────────────────────────────────────────
+
+function buildMergedCommand(
+    name: string,
+    entries: { relKey: string; mod: BotCommand }[],
+    client: ExtendedClient,
+): BotCommand {
+    // Collect all subcommand groups / subcommands from every file's data.options
+    const allOptions: any[] = [];
+    const executeMap = new Map<string, BotCommand['execute']>();
+    const autocompleteMap = new Map<string, BotCommand['autocomplete']>();
+
+    for (const { relKey, mod } of entries) {
+        const opts: any[] = mod.data.options ?? [];
+        allOptions.push(...opts);
+
+        // Build dispatch keys: "<groupName>" or "<groupName> <subName>"
+        for (const opt of opts) {
+            // SubcommandGroup (type 2)
+            if (opt.type === 2) {
+                for (const sub of opt.options ?? []) {
+                    const key = `${opt.name} ${sub.name}`;
+                    executeMap.set(key, mod.execute);
+                    if (mod.autocomplete) autocompleteMap.set(key, mod.autocomplete);
+                }
+                // Also map the group itself in case execute is called without subcommand
+                executeMap.set(opt.name, mod.execute);
+                if (mod.autocomplete) autocompleteMap.set(opt.name, mod.autocomplete);
+            }
+            // Plain Subcommand (type 1)
+            if (opt.type === 1) {
+                executeMap.set(opt.name, mod.execute);
+                if (mod.autocomplete) autocompleteMap.set(opt.name, mod.autocomplete);
+            }
+        }
+
+        if (mod.toggle) client.toggleableCommands.push(relKey);
+    }
+
+    // Synthesise a merged data object — keep the first file's top-level description,
+    // but replace options with the full merged set.
+    const baseData = { ...entries[0].mod.data, options: allOptions };
+
+    const merged: BotCommand = {
+        data: baseData,
+
+        async execute(interaction, cl) {
+            if (!interaction.isChatInputCommand()) return;
+            const group = interaction.options.getSubcommandGroup(false);
+            const sub   = interaction.options.getSubcommand(false);
+
+            // Resolve the right handler
+            let handler = group && sub
+                ? executeMap.get(`${group} ${sub}`)
+                : sub
+                    ? executeMap.get(sub)
+                    : undefined;
+
+            if (!handler) {
+                await interaction.reply({ content: '❌ Unknown subcommand.', ephemeral: true });
+                return;
+            }
+            await handler(interaction, cl);
+        },
+
+        async autocomplete(interaction) {
+            const group = interaction.options.getSubcommandGroup(false);
+            const sub   = interaction.options.getSubcommand(false);
+
+            const handler = group && sub
+                ? autocompleteMap.get(`${group} ${sub}`)
+                : sub
+                    ? autocompleteMap.get(sub)
+                    : undefined;
+
+            if (handler) await handler(interaction);
+        },
+    };
+
+    return merged;
+}
+
+// ─── Deploy ───────────────────────────────────────────────────────────────────
+
+const ID_LOG_PATH = path.join(process.cwd(), 'data', 'ids.json');
+
+function writeCommandIdLog(commands: { name: string; id: string }[]): void {
+    const data = {
+        deployed_at: new Date().toISOString(),
+        commands: Object.fromEntries(commands.map(c => [c.name, c.id])),
+    };
+    const dir = path.dirname(ID_LOG_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(ID_LOG_PATH, JSON.stringify(data, null, 2), 'utf-8');
+    log(chalk.cyanBright('Command IDs written to data/ids.json'));
 }
 
 export async function deployCommands(client: ExtendedClient): Promise<void> {
@@ -98,13 +184,7 @@ export async function deployCommands(client: ExtendedClient): Promise<void> {
         return;
     }
 
-    if (CLIENT_ID === 'Client ID' || TOKEN === 'Token') {
-        logError(new Error('Default Values'), 'Commands');
-        process.exit(1);
-    }
-
     const rest = new REST({ version: '10' }).setToken(TOKEN);
-
     const commands = client.commands.map(cmd => ({
         ...cmd.data,
         integration_types: [0, 1],
@@ -112,14 +192,12 @@ export async function deployCommands(client: ExtendedClient): Promise<void> {
     }));
 
     try {
-        log(chalk.yellow('Deploying commands globally (may take up to 1 hour to propagate)'));
-
+        log(chalk.yellow('Deploying commands globally…'));
         const deployed = await rest.put(
             Routes.applicationCommands(CLIENT_ID),
             { body: commands }
         ) as { name: string; id: string }[];
-
-        log(chalk.greenBright('Global commands deployed successfully'));
+        log(chalk.greenBright('Global commands deployed'));
         writeCommandIdLog(deployed);
     } catch (error) {
         logError(error, 'Commands');
