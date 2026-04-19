@@ -43,7 +43,8 @@ function buildStatusEmbed(userId: string, displayName: string, disabled: string[
             { name: '✅ Enabled', value: enabledList, inline: true },
             { name: '❌ Disabled', value: disabledList, inline: true },
         )
-        .setColor(allDisabled ? 0xED4245 : noneDisabled ? 0x57F287 : 0xFEE75C);
+        .setColor(allDisabled ? 0xED4245 : noneDisabled ? 0x57F287 : 0xFEE75C)
+        .setFooter({ text: 'GayBot v2' });
 }
 
 // ─── Command ──────────────────────────────────────────────────────────────────

@@ -64,7 +64,8 @@ export default {
         const embed = new EmbedBuilder()
             .setTitle('🏳️‍🌈 Gayness Percentage Calculator')
             .setDescription(message)
-            .setColor(0x8e44ad);
+            .setColor(0x8e44ad)
+            .setFooter({ text: 'GayBot v2' });
 
         await interaction.editReply({ embeds: [embed] });
     },

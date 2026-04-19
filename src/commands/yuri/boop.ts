@@ -41,7 +41,8 @@ export default {
 
         const embed = new EmbedBuilder()
             .setColor(0xff69b4)
-            .setImage(gif);
+            .setImage(gif)
+            .setFooter({ text: 'GayBot v2' });
 
         await interaction.reply({
             content: `*${interaction.user} boops ${targetUser}!* 🌸`,

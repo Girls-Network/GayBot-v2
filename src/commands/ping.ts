@@ -30,7 +30,8 @@ export default {
             .setDescription(
                 `Pong! 🏓\n**Command Latency**: **${latency}ms**\n**API Latency**: **${apiLatency}ms**`
             )
-            .setColor(0x2ecc71);
+            .setColor(0x2ecc71)
+            .setFooter({ text: 'GayBot v2'});
 
         await interaction.editReply({ content: '', embeds: [embed] });
     },

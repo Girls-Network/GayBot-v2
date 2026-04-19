@@ -28,9 +28,10 @@ export default {
             .setDescription(
                 `**Support Server:**https://discord.gg/transfemme
                 \n**Source Code:** https://github.com/Girls-Network/GayBot-v2
-                \n**Bot Status:** https://status.girlnetwork.dev`
+                \n**Bot Status:** https://status.girlsnetwork.dev`
             )
-            .setColor(0x2ecc71);
+            .setColor(0x2ecc71)
+            .setFooter({ text: 'GayBot v2'});
 
         await interaction.editReply({ content: '', embeds: [embed] });
     },
