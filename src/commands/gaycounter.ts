@@ -23,8 +23,11 @@ function calculateGayness(userId: string): number {
     if (gaynessOverrides.has(userId)) {
         return gaynessOverrides.get(userId)!;
     }
-    const gayness = Math.floor(Math.random() * 101)
-    return gayness
+
+    const seeding = parseInt(userId) % 1000;
+    const decimal = Math.abs(Math.sin(seeding)) * 100;
+    const gayness = parseFloat(decimal.toFixed(1));
+    return gayness;
 
 }
 
