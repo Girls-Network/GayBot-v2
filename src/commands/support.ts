@@ -31,7 +31,8 @@ export default {
                 \n**Bot Status:** https://status.girlsnetwork.dev`
             )
             .setColor(0x2ecc71)
-            .setFooter({ text: 'GayBot v2'});
+            .setFooter({ text: 'GayBot v2' })
+            .setThumbnail('https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png');
 
         await interaction.editReply({ content: '', embeds: [embed] });
     },
