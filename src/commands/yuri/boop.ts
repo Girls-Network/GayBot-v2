@@ -42,7 +42,7 @@ export default {
         const embed = new EmbedBuilder()
             .setColor(0xff69b4)
             .setImage(gif)
-            .setFooter({ text: 'GayBot v2' });
+            .setFooter({ text: 'GayBot v2', iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' });
 
         await interaction.reply({
             content: `*${interaction.user} boops ${targetUser}!* 🌸`,

@@ -43,7 +43,7 @@ export default {
         const embed = new EmbedBuilder()
             .setTitle('📖 Available Commands')
             .setDescription(commandList.slice(page * COMMANDS_PER_PAGE, (page + 1) * COMMANDS_PER_PAGE).join('\n\n'))
-            .setFooter({ text: `Page ${page + 1} of ${totalPages}` })
+            .setFooter({ text: `Page ${page + 1} of ${totalPages}`, iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' })
             .setColor(0x5865F2);
 
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(

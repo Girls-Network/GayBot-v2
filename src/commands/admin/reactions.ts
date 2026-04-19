@@ -51,7 +51,7 @@ function buildStatusEmbed(prefs: ReactionData, guildName: string): EmbedBuilder 
             { name: '❌ Disabled', value: disabledList, inline: true },
         )
         .setColor(allDisabled ? 0xED4245 : noneDisabled ? 0x57F287 : 0xFEE75C)
-        .setFooter({ text: 'GayBot v2' });
+        .setFooter({ text: 'GayBot v2', iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' });
 }
 
 // ─── Command ──────────────────────────────────────────────────────────────────

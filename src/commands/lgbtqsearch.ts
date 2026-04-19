@@ -131,7 +131,7 @@ export default {
                 .setColor(0xED4245)
                 .setTitle('Term Not Found 🔎')
                 .setDescription(`Could not find a definition for **"${searchTerm}"** in the database. Missing information? Open an issue on our [github](https://github.com/Girls-Network/LGBT-API/issues)`)
-                .setFooter({ text: 'GayBot v2' });
+                .setFooter({ text: 'GayBot v2', iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' });
 
             if (targetMember) {
                 content = `${targetMember}, I couldn't find a definition for **${searchTerm}**.`;

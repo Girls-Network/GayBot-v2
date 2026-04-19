@@ -28,7 +28,7 @@ function buildIdentityEmbed(data: IdentityData, displayName: string, avatarURL: 
     const embed = new EmbedBuilder()
         .setTitle(title)
         .setColor(0x8e44ad)
-        .setFooter({ text: `Last updated: ${new Date(data.updated_at).toUTCString()}` });
+        .setFooter({ text: `Last updated: ${new Date(data.updated_at).toUTCString()}`, iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' });
 
     if (avatarURL) embed.setThumbnail(avatarURL);
     if (fields.length > 0) embed.addFields(fields);

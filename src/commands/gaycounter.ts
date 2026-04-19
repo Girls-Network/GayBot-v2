@@ -65,7 +65,7 @@ export default {
             .setTitle('🏳️‍🌈 Gayness Percentage Calculator')
             .setDescription(message)
             .setColor(0x8e44ad)
-            .setFooter({ text: 'GayBot v2' });
+            .setFooter({ text: 'GayBot v2', iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' });
 
         await interaction.editReply({ embeds: [embed] });
     },
