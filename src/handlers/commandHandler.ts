@@ -44,8 +44,9 @@ export async function loadCommands(client: ExtendedClient): Promise<void> {
     const commandsRoot = path.join(__dirname, '../commands');
     const files = collectCommandFiles(commandsRoot, commandsRoot);
 
-    // Group raw modules by their top-level command name
-    // e.g. "admin commands" and "admin reactions" both go under "admin"
+    // Bucket command modules by their top-level name. This is how we let
+    // admin/commands.ts and admin/reactions.ts both contribute to /admin
+    // without fighting over ownership of the top-level Discord command.
     const grouped = new Map<string, { relKey: string; mod: BotCommand }[]>();
 
     for (const { filePath, relKey } of files) {
@@ -59,13 +60,15 @@ export async function loadCommands(client: ExtendedClient): Promise<void> {
 
     for (const [topLevelName, entries] of grouped) {
         if (entries.length === 1) {
-            // Single file for this command — register as-is
+            // Only one file contributes to this command, easy case.
             const { relKey, mod } = entries[0];
             client.commands.set(topLevelName, mod);
             if (mod.toggle) client.toggleableCommands.push(relKey);
             log(chalk.cyanBright(`  Loaded /${topLevelName}`));
         } else {
-            // Multiple files share a top-level name — merge their subcommand groups
+            // Several files claim the same top-level command. Fold their
+            // subcommand groups together into one synthetic command so
+            // Discord sees a single /admin with all the pieces attached.
             const merged = buildMergedCommand(topLevelName, entries, client);
             client.commands.set(topLevelName, merged);
             log(chalk.cyanBright(`  Merged /${topLevelName} (${entries.length} files)`));
@@ -85,7 +88,9 @@ function buildMergedCommand(
     entries: { relKey: string; mod: BotCommand }[],
     client: ExtendedClient,
 ): BotCommand {
-    // Collect all subcommand groups / subcommands from every file's data.options
+    // Pull every subcommand/group out of each contributing file, plus build
+    // a lookup table so we can route an incoming interaction back to the
+    // right file's execute()/autocomplete() at dispatch time.
     const allOptions: any[] = [];
     const executeMap = new Map<string, BotCommand['execute']>();
     const autocompleteMap = new Map<string, BotCommand['autocomplete']>();
@@ -94,20 +99,23 @@ function buildMergedCommand(
         const opts: any[] = mod.data.options ?? [];
         allOptions.push(...opts);
 
-        // Build dispatch keys: "<groupName>" or "<groupName> <subName>"
+        // Keys look like "reactions disable" for grouped subcommands, or
+        // just "disable" for plain subcommands. Same shape the dispatcher
+        // below reconstructs from the interaction.
         for (const opt of opts) {
-            // SubcommandGroup (type 2)
+            // type 2 = SubcommandGroup (per Discord's API constants)
             if (opt.type === 2) {
                 for (const sub of opt.options ?? []) {
                     const key = `${opt.name} ${sub.name}`;
                     executeMap.set(key, mod.execute);
                     if (mod.autocomplete) autocompleteMap.set(key, mod.autocomplete);
                 }
-                // Also map the group itself in case execute is called without subcommand
+                // Belt-and-braces: also register the bare group name in
+                // case someone invokes it without a subcommand somehow.
                 executeMap.set(opt.name, mod.execute);
                 if (mod.autocomplete) autocompleteMap.set(opt.name, mod.autocomplete);
             }
-            // Plain Subcommand (type 1)
+            // type 1 = plain Subcommand
             if (opt.type === 1) {
                 executeMap.set(opt.name, mod.execute);
                 if (mod.autocomplete) autocompleteMap.set(opt.name, mod.autocomplete);
@@ -117,8 +125,9 @@ function buildMergedCommand(
         if (mod.toggle) client.toggleableCommands.push(relKey);
     }
 
-    // Synthesise a merged data object — keep the first file's top-level description,
-    // but replace options with the full merged set.
+    // Build the combined command payload Discord sees. The first file wins
+    // on the top-level description (there's no sensible way to merge prose),
+    // but options get replaced with the full union.
     const baseData = { ...entries[0].mod.data, options: allOptions };
 
     const merged: BotCommand = {
@@ -129,7 +138,8 @@ function buildMergedCommand(
             const group = interaction.options.getSubcommandGroup(false);
             const sub   = interaction.options.getSubcommand(false);
 
-            // Resolve the right handler
+            // Pick the handler that owns this subcommand. Grouped path
+            // first ("reactions disable"), plain sub second ("disable").
             let handler = group && sub
                 ? executeMap.get(`${group} ${sub}`)
                 : sub

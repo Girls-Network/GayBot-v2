@@ -20,13 +20,23 @@ if (!TOKEN) {
 asciiArt();
 logBoot();
 
-// We point the manager at the compiled main.js (or main.ts if using ts-node)
-const botFile = path.join(__dirname, 'main.js');
+// In prod we're running compiled JS out of dist/ (so __filename ends in .js
+// and main.js is sitting next to us). In dev, ts-node is running us straight
+// from src/ and our sibling is main.ts instead. Detect which we're in and
+// point ShardingManager at the right file.
+//
+// The execArgv bit matters too: ShardingManager forks child processes for
+// each shard, and those children don't inherit our ts-node hook. So in dev
+// we have to tell Node to preload ts-node/register in each shard as well,
+// otherwise they try to load main.ts as plain JS and explode.
+const isTsNode = __filename.endsWith('.ts');
+const botFile = path.join(__dirname, isTsNode ? 'main.ts' : 'main.js');
 
 const manager = new ShardingManager(botFile, {
     token: TOKEN,
     totalShards: 5,
-    respawn: true, // Auto-restart crashed shards
+    respawn: true, // auto-restart crashed shards so a blip doesn't take us down
+    execArgv: isTsNode ? ['-r', 'ts-node/register'] : undefined,
 });
 
 // ── Shard lifecycle logging ────────────────────────────────────────────────

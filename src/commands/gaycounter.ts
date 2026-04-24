@@ -10,6 +10,8 @@ import {
     ApplicationCommandOptionType
 } from 'discord.js';
 
+// Hand-picked overrides for the bit. Everyone else rolls on the deterministic
+// sin() below. Add yourself at your own risk, we don't judge... much.
 const gaynessOverrides = new Map<string, number>([
     ['652597508027187240', 1000], // @transbian
     ['1125844710511104030', 69], // @doughmination.system
@@ -19,6 +21,10 @@ const gaynessOverrides = new Map<string, number>([
     ['527709099186716673', 200] // @theawesometaco
 ]);
 
+// Deterministic pseudo-random gayness from the Discord ID. Using sin here
+// instead of a hash is intentional: it's cheap, repeatable, and the output
+// is nicely distributed in [0, 100). The mod-1000 seeding keeps the input
+// small enough that sin doesn't lose precision on huge numbers.
 function calculateGayness(userId: string): number {
     if (gaynessOverrides.has(userId)) {
         return gaynessOverrides.get(userId)!;

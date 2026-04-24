@@ -161,21 +161,9 @@ export function enableSystemEmojis(systemId: string, titles: string[]): Reaction
 
 // ─── Reaction gate ────────────────────────────────────────────────────────────
 
-/**
- * Called by the reaction queue with the emoji's TITLE (e.g. "Lesbian Flag").
- *
- * Returns true  → react
- * Returns false → skip
- *
- * Layered opt-outs — most restrictive wins. Any of these disabling the title
- * blocks the reaction:
- *   1. Guild has it disabled server-wide.
- *   2. PK system has it disabled (applies to every account in that system).
- *   3. The sender Discord user has it disabled.
- *
- * `systemId` is populated for PK-proxied messages (resolved via PK's API
- * upstream). For non-proxied traffic it's omitted and only (1) and (3) apply.
- */
+// Check if a reaction should fire. Layered opt-outs: guild (1) > system (2) >
+// user (3). Any one of them opting out blocks the reaction. systemId is only
+// set for PK-proxied messages (resolved upstream); null for regular Discord.
 export function isReactionAllowed(
     title: string,
     userId: string,

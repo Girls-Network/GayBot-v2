@@ -8,39 +8,30 @@ import { LruCache } from './cache';
 import { pkFetch, PkApiError } from './client';
 import type { PkMessageResponse, PkSystemResponse, ResolvedSender } from './types';
 
-/**
- * PK persists message metadata asynchronously after proxying, so the API
- * can briefly 404 before the row lands in their DB. Their dev recommends
- * an exponential-ish backoff abandoning around 3–5s.
- */
+// PK saves metadata async after proxying, so we'll 404 briefly. Their devs
+// recommend bailing after ~3–5s of exponential backoff.
 const RETRY_DELAYS_MS: readonly number[] = [500, 1000, 2000];
 
-/**
- * `messageId -> ResolvedSender | null`.
- *   - A `ResolvedSender` means the message is PK-proxied; this mapping never
- *     changes, so we cache indefinitely (confirmed with PK).
- *   - `null` means the API returned 404 after all retries — i.e. the message
- *     is not PK-proxied.
- *
- * 10k entries ≈ a few MB and covers a healthy recent-message window.
- */
+// Map messageId -> ResolvedSender | null. ResolvedSender = PK-proxied msg
+// (never changes, cache forever). null = 404 after retries (not PK proxied).
+// 10k entries ≈ a few MB, covers recent-message window.
 const senderCache = new LruCache<string, ResolvedSender | null>(10_000);
 
-/** De-dupe concurrent lookups of the same message ID. */
+// If two shards see the same message near-simultaneously we don't want
+// both firing requests off. First caller does the fetch, anyone else
+// joining in gets the same promise.
 const inFlight = new Map<string, Promise<ResolvedSender | null>>();
 
 function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Resolve a (possibly) PK-proxied message to the real Discord user behind it.
- *
- * Returns `null` when the message isn't a PK proxy (after retries for the
- * async-DB race). Throws `PkApiError` on non-404 API failures.
- *
- * Results are memoised — safe and cheap to call for every webhook message.
- */
+// Returns the real sender behind a (maybe) PK-proxied message, or null
+// if it turns out not to be PK at all (we retry for the async-DB race
+// first, see the file-top comment). Anything else blowing up surfaces
+// as a PkApiError for the caller to log.
+//
+// Cached forever — proxy identity doesn't change once set.
 export async function resolveProxiedSender(messageId: string): Promise<ResolvedSender | null> {
     const cached = senderCache.get(messageId);
     if (cached !== undefined) return cached;
@@ -104,27 +95,19 @@ async function doResolve(messageId: string): Promise<ResolvedSender | null> {
 
 // ─── System-by-Discord-user lookup ────────────────────────────────────────────
 
-/**
- * `discordUserId -> systemId | null`.
- *
- * PK system membership doesn't change often, but it *can* — if a user leaves
- * a system or switches accounts. We cache for the process lifetime; bot
- * restarts clear it. A 1h TTL would be defensible; shipping without one for
- * now since the consequence of a stale cache is tolerable (a reaction or two
- * inconsistently gated).
- */
+// Discord user ID -> system hid (or null if they're not plural / hid by
+// privacy). System membership doesn't change often, but it *can* when
+// someone leaves or switches account. We could slap a TTL on but haven't
+// bothered: the worst case is a reaction or two inconsistently gated
+// until the next restart, which is tolerable.
 const systemByDiscordCache = new LruCache<string, string | null>(5_000);
 const systemInFlight = new Map<string, Promise<string | null>>();
 
-/**
- * Resolve a Discord user ID to their PK system hid, if any.
- *
- * Returns `null` when:
- *   - The user has no PK system (404).
- *   - Their system privacy hides it from `/systems/{discord_id}` lookups.
- *
- * Errors other than 404/403 throw `PkApiError`.
- */
+// Returns the invoker's PK system hid or null if they don't have one.
+// "Don't have one" covers both "not plural" (404) and "plural but hiding
+// it from the /systems/{discord_id} endpoint" (403) — both are the same
+// "nothing to cascade to" from our side, so we flatten them. Any other
+// status throws so the caller can log.
 export async function resolveSystemByDiscordUser(discordUserId: string): Promise<string | null> {
     const cached = systemByDiscordCache.get(discordUserId);
     if (cached !== undefined) return cached;

@@ -11,24 +11,21 @@ import { VoiceStateEditOptions } from 'discord.js';
 
 const LOG_DIR = path.join(process.cwd(), '.logs');
 
-// Ensure log directory exists
+// Make sure .logs/ exists up-front — appendFileSync will throw otherwise
+// and we'd lose the first error we tried to record.
 if (!fs.existsSync(LOG_DIR)) {
     fs.mkdirSync(LOG_DIR, { recursive: true });
 }
 
-/**
- * Read the bot version from package.json at runtime.
- *
- * We resolve relative to __dirname so it works from both `dist/utils/` (prod)
- * and `src/utils/` (ts-node dev). Reading lazily with try/catch means a
- * missing/malformed package.json downgrades to "unknown" instead of crashing
- * boot.
- */
+// Grab the version string from package.json so the boot banner shows it.
+// The two candidate paths cover prod (compiled to dist/utils/) and dev
+// (ts-node running straight out of src/utils/) — we're one directory
+// deeper in dev, hence the extra ../ step. A missing or busted package.json
+// shouldn't stop the bot booting, so we just fall through to "unknown".
 function getBotVersion(): string {
-    // Walk up to the project root from wherever this file runs.
     const candidates = [
-        path.join(__dirname, '..', '..', 'package.json'),        // dist/utils/logger.js -> ./package.json
-        path.join(__dirname, '..', '..', '..', 'package.json'),  // src/utils/logger.ts under ts-node
+        path.join(__dirname, '..', '..', 'package.json'),        // dist/utils/logger.js
+        path.join(__dirname, '..', '..', '..', 'package.json'),  // src/utils/logger.ts (ts-node)
     ];
     for (const p of candidates) {
         try {
@@ -36,7 +33,7 @@ function getBotVersion(): string {
             const pkg = JSON.parse(fs.readFileSync(p, 'utf-8')) as { version?: string };
             if (typeof pkg.version === 'string') return pkg.version;
         } catch {
-            // try next candidate
+            // malformed JSON here doesn't matter, try the next path
         }
     }
     return 'unknown';
@@ -60,7 +57,7 @@ export function logError(error: Error | unknown, context?: string): void {
 
     const logContent = `${formatted} ERROR${context ? ` (${context})` : ''}: ${errorMessage}\n${stack}\n\n`;
 
-    // Write to error log file
+    // One file per day keeps logs grep-able without rotation tooling.
     const filename = `error-${new Date().toISOString().split('T')[0]}.log`;
     fs.appendFileSync(path.join(LOG_DIR, filename), logContent);
 
@@ -91,7 +88,8 @@ export function logBoot(): void {
     const authors = 'Aria Rees & Clove Nytrix Doughmination Twilight';
     const version = `v${getBotVersion()}`;
 
-    // Box width = longest line + 4 (2 spaces of padding each side).
+    // Width the box has to be = longest string inside it + 2 spaces of
+    // padding on each side. Everything else is centred inside that width.
     const innerWidth = Math.max(authors.length, version.length) + 4;
     const border = '═'.repeat(innerWidth);
 

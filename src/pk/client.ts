@@ -4,14 +4,9 @@
  * See LICENCE in the project root for full licence information.
  */
 
-/**
- * Thin wrapper around PluralKit's v2 HTTP API.
- *
- * Rate limits (confirmed with PK devs):
- *   - `/messages/{id}` is 10 req/sec, per-IP (token does not raise it).
- *   - Across shards/instances we must use the same `User-Agent` so PK's
- *     metrics can see all our traffic as one bot.
- */
+// PluralKit v2 API client. /messages/{id} caps at 10 req/sec per IP
+// (token won't raise it). Always use the same User-Agent across shards
+// so PK sees all our traffic as one bot.
 
 const API_BASE = 'https://api.pluralkit.me/v2';
 

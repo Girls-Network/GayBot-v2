@@ -12,15 +12,12 @@ import {
     MessageFlags
 } from 'discord.js';
 
-// NOTE: Using girlsnetwork.dev API
 interface ApiResponse {
     content: string;
     type: 'gender' | 'sexuality';
 }
 
-/**
- * Normalize the search term by converting to lowercase and removing plural forms
- */
+// Normalize search terms: lowercase, strip common plurals.
 function normalizeTerm(term: string): string {
     let normalized = term.toLowerCase().trim();
     
@@ -42,8 +39,10 @@ function normalizeTerm(term: string): string {
 
 async function searchLgbtqTerm(term: string): Promise<ApiResponse | null> {
     const normalizedTerm = normalizeTerm(term);
-    
-    // Use environment variable for API base URL, defaulting to production
+
+    // Our own API — same repo as the dataset at github.com/Girls-Network/LGBT-API.
+    // If we ever stand up staging we'll probably want to env-var this, but for
+    // now it's a single production endpoint.
     const apiBase = 'https://api.girlsnetwork.dev';
     const apiURL = `${apiBase}/api/${encodeURIComponent(normalizedTerm)}`;
 

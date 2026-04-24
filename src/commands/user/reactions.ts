@@ -30,10 +30,10 @@ import { logError } from '../../utils/logger';
 
 // ─── PK cascade helpers ───────────────────────────────────────────────────────
 
-/**
- * Resolve the invoking user's PK system, if any. Swallows API failures —
- * cascading is best-effort; the user-level opt-out always applies regardless.
- */
+// Does a best-effort PK lookup for the invoking user. If PK is down or the
+// user isn't a plural, we just skip the cascade — the user's own file still
+// gets applied, so nothing breaks, they just don't get the system-wide
+// convenience this time.
 async function tryResolveSystem(discordUserId: string): Promise<string | null> {
     try {
         return await resolveSystemByDiscordUser(discordUserId);
@@ -43,7 +43,8 @@ async function tryResolveSystem(discordUserId: string): Promise<string | null> {
     }
 }
 
-/** Union of user + system disabled titles, de-duplicated. */
+// What the user effectively has disabled right now: their own opt-outs plus
+// whatever the system-level file says, de-duped.
 function mergedDisabled(userId: string, systemId: string | null): string[] {
     const user = getUserReactionPrefs(userId).disabled_emojis;
     if (!systemId) return [...user];
@@ -67,7 +68,7 @@ function buildStatusEmbed(
     else                   statusLine = `🟡 Some reactions disabled (${disabled.length}/${ALL_EMOJI_TITLES.length})`;
 
     if (systemId) {
-        statusLine += `\n🔗 Linked to PluralKit system \`${systemId}\` — prefs apply to every account in the system.`;
+        statusLine += `\n🔗 Linked to PluralKit system \`${systemId}\`, so these prefs apply to every account in the system.`;
     }
 
     const disabledList = disabled.length > 0
@@ -143,8 +144,9 @@ export default {
     async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
         const sub     = interaction.options.getSubcommand();
         const focused = interaction.options.getFocused().toLowerCase();
-        // Autocomplete reflects the effective (user + system) set so plurals
-        // see the truth of what's disabled, not just their own file.
+        // Show plurals the merged picture, not just their personal file —
+        // otherwise /enable autocomplete would miss stuff the system had
+        // already disabled and they'd be confused about why it isn't there.
         const systemId = await tryResolveSystem(interaction.user.id);
         const disabled = mergedDisabled(interaction.user.id, systemId);
 
@@ -195,7 +197,7 @@ export default {
             }
 
             const scopeNote = systemId
-                ? ` (applied to your PluralKit system \`${systemId}\` — every account in the system is covered)`
+                ? ` (also applied across your PluralKit system \`${systemId}\`, so every account is covered)`
                 : '';
             await interaction.reply({
                 content: `✅ ${emoji} ${label} disabled on your messages.${scopeNote}`.trim(),
@@ -215,7 +217,7 @@ export default {
             }
 
             const scopeNote = systemId
-                ? ` (applied to your PluralKit system \`${systemId}\` — every account in the system is covered)`
+                ? ` (also applied across your PluralKit system \`${systemId}\`, so every account is covered)`
                 : '';
             await interaction.reply({
                 content: `✅ ${emoji} ${label} re-enabled on your messages.${scopeNote}`.trim(),

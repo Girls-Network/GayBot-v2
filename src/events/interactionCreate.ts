@@ -23,10 +23,8 @@ interface ExtendedClient {
 
 const COMMANDS_PER_PAGE = 5;
 
-/**
- * Build the subcommand key for an interaction, e.g. "yuri kiss" or "gaycounter".
- * Matches the relKey format produced by the command loader.
- */
+// Build the subcommand key for an interaction (e.g. "yuri kiss" or "admin commands disable").
+// Matches the format the command loader produces.
 function getSubcommandKey(interaction: any): string {
     try {
         const group = interaction.options?.getSubcommandGroup(false);
@@ -61,11 +59,14 @@ export default {
             const command = client.commands.get(interaction.commandName);
             if (!command) return;
 
-            // Only gate toggleable commands
+            // The opt-out gate only applies to things explicitly marked
+            // toggle: true (the yuri stuff etc.). Utility commands like
+            // /ping or /help should never be silently disabled.
             if (command.toggle) {
                 const key = getSubcommandKey(interaction);
 
-                // 1. Guild-level check
+                // Guild bans win — if the server has turned this off, no
+                // one in it gets to use it, regardless of target.
                 if (interaction.guildId) {
                     const guildData = readGuildFile(interaction.guildId);
                     if (guildData.disabled_commands?.includes(key)) {
@@ -77,7 +78,9 @@ export default {
                     }
                 }
 
-                // 2. Target user check — only relevant if the command takes a 'target' user option
+                // Individual opt-outs. Only matters for commands that
+                // aim at a user ('target' option); self-targeting
+                // commands don't hit this branch.
                 const targetUser = interaction.options.getUser('target');
                 if (targetUser) {
                     const targetData = readUserFile(targetUser.id);

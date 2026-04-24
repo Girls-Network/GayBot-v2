@@ -34,10 +34,13 @@ export interface ReactionQueueEntry {
     systemId: string | null;
 }
 
-// Load emoji configuration
+// Imported once at module load — the config file is static and we don't
+// want to re-parse the JSON for every incoming message.
 const emojis: EmojiConfig[] = emojiConfigData as EmojiConfig[];
 
-// Keyword Checker
+// Matches message content against the keyword config and spits out the
+// emojis that should fire. This is the hot path for every message we see,
+// so keep it cheap.
 export class KeywordChecker {
     private emojiMap: EmojiConfig[];
 
@@ -52,22 +55,22 @@ export class KeywordChecker {
         }
 
         const lowerMessage = messageContent.toLowerCase();
-        const found = new Map<string, string>(); // emoji → title
+        const found = new Map<string, string>(); // emoji → title, de-dupes by emoji
 
         this.emojiMap.forEach(item => {
             const matchFound = item.keywords.some(keyword => {
                 const lowerKeyword = keyword.toLowerCase();
 
-                // Check if keyword is a Discord mention
+                // Literal-match for Discord mentions like <@123>. Word-boundary
+                // regex would mangle these because of the angle brackets.
                 if (lowerKeyword.startsWith('<@') && lowerKeyword.endsWith('>')) {
                     return lowerMessage.includes(lowerKeyword);
                 }
 
-                // For regular keywords, use boundary-aware regex.
-                // \b only works between \w and \W characters, so keywords that
-                // start or end with non-word chars (e.g. :3, ;3, ^w^) won't
-                // match correctly with \b — we use lookahead/lookbehind for
-                // whitespace or string boundaries instead.
+                // Word-boundary matching for everything else. We swap \b for a
+                // whitespace lookahead/behind when the keyword starts or ends
+                // with a non-word char — otherwise things like ":3" or "^w^"
+                // never match because \b can't anchor against punctuation.
                 const escapedKeyword = lowerKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                 const pluralization = '(s|es)?';
 
@@ -90,7 +93,9 @@ export class KeywordChecker {
     }
 }
 
-// Reaction Queue Processor
+// Single-flight guard. Multiple 1s ticks can fire while a fetch is still
+// in flight (e.g. slow Discord response); this flag makes sure we don't
+// double-process the same queue entry.
 let isProcessing = false;
 
 export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise<void> {
@@ -105,8 +110,9 @@ export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise
         try {
             const message = await entry.message.fetch();
 
-            // entry.authorId is the real user ID (PK-resolved for proxied
-            // messages, or the Discord author for everyone else).
+            // authorId here is already the real human — messageCreate did
+            // the PK/plural dance before pushing us the entry, so we can
+            // trust it for opt-out lookups.
             const guildId = message.guildId ?? null;
 
             if (!isReactionAllowed(entry.title, entry.authorId, guildId, entry.systemId)) {
@@ -123,7 +129,8 @@ export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise
 
     isProcessing = false;
 
-    // Continue processing if queue has more items
+    // 500ms between reactions is slower than strictly needed but keeps us
+    // well under Discord's per-channel reaction rate limit (1/250ms).
     if (queue.length > 0) {
         setTimeout(() => processReactionQueue(queue), 500);
     }

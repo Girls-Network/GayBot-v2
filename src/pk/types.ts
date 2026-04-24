@@ -4,7 +4,7 @@
  * See LICENCE in the project root for full licence information.
  */
 
-/** Subset of PluralKit's `GET /v2/systems/{ref}` response we consume. */
+/** Fields from GET /v2/systems/{ref} we actually use. */
 export interface PkSystemResponse {
     /** Short 5-char hid. */
     id: string;
@@ -12,7 +12,7 @@ export interface PkSystemResponse {
     name: string | null;
 }
 
-/** Subset of PluralKit's `GET /v2/messages/{id}` response we actually consume. */
+/** Fields from GET /v2/messages/{id} we actually use. */
 export interface PkMessageResponse {
     id: string;
     /** Discord message ID of the pre-proxy message (deleted by PK). */
@@ -25,7 +25,7 @@ export interface PkMessageResponse {
     member: { id: string; uuid: string; name: string } | null;
 }
 
-/** Trimmed-down result we pass around inside the bot. */
+/** What we pass around internally after resolving a PK message. */
 export interface ResolvedSender {
     /** The real Discord user ID behind the proxy. */
     senderId: string;

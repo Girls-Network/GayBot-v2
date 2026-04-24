@@ -19,6 +19,8 @@ interface BotCommand {
     execute: (interaction: CommandInteraction, client: any) => Promise<void>;
 }
 
+// Five fits comfortably in a single Discord embed without scrolling. If we
+// start running long on descriptions it may be worth dropping this to 4.
 const COMMANDS_PER_PAGE = 5;
 
 export default {
@@ -30,8 +32,10 @@ export default {
     async execute(interaction: CommandInteraction, client: any) {
         if (!interaction.isChatInputCommand()) return;
 
+        // Build the full list up-front; pagination happens by slicing it.
+        // The actual page-turn buttons are handled in interactionCreate.
         const commandList: string[] = [];
-        
+
         client.commands.forEach((cmd: BotCommand) => {
             const data = cmd.data;
             commandList.push(`**/${data.name}**\n└ ${data.description}`);

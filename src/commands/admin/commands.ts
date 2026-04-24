@@ -127,7 +127,7 @@ export default {
     async execute(interaction: CommandInteraction, client: any): Promise<void> {
         if (!interaction.isChatInputCommand()) return;
 
-        // Must be in a guild
+        // DMs don't have server settings to manage, so bail early.
         if (!interaction.inGuild()) {
             await interaction.reply({
                 content: '❌ Server settings can only be managed inside a server.',
@@ -136,7 +136,8 @@ export default {
             return;
         }
 
-        // Require ManageGuild
+        // Gate on ManageGuild. Cache lookup first so we don't slam the
+        // REST API for staff who've already interacted this session.
         const member = interaction.guild?.members.cache.get(interaction.user.id)
             ?? await interaction.guild?.members.fetch(interaction.user.id);
 

@@ -93,13 +93,16 @@ async function collectStats(manager: ShardingManager): Promise<StatusPayload> {
 }
 
 export function startStatusServer(manager: ShardingManager): void {
-    // Serve the static dashboard HTML
+    // status.html lives at the project root, not inside src/. From dist/utils/
+    // that's two directories up; ts-node's src/utils/ ends up at the same
+    // relative place because we're one level deeper than dist/.
     const htmlPath = path.join(__dirname, '../../status.html');
 
     const server = http.createServer(async (req, res) => {
         const url = req.url ?? '/';
 
-        // JSON API endpoint
+        // /api/status — machine-readable. CORS is wide open on purpose so
+        // the dashboard HTML can be hosted anywhere and still poll us.
         if (url === '/api/status') {
             try {
                 const payload = await collectStats(manager);
@@ -116,7 +119,7 @@ export function startStatusServer(manager: ShardingManager): void {
             return;
         }
 
-        // Dashboard HTML
+        // / — human-facing dashboard page.
         if (url === '/' || url === '/index.html') {
             if (fs.existsSync(htmlPath)) {
                 const html = fs.readFileSync(htmlPath, 'utf-8');

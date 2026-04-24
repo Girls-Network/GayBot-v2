@@ -14,7 +14,8 @@ import { startBannerRotater } from './utils/bannerRotator';
 import chalk from 'chalk';
 import { ExtendedClient } from './utils/ExtendedClient';
 
-// Initialize client
+// Minimal intent set: we only need to see guild messages and their content
+// to do the reaction matching. If we ever need DMs or member events, revisit.
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -23,12 +24,16 @@ const client = new Client({
     ],
 }) as ExtendedClient;
 
-// Initialize properties
+// Attach the per-shard bits we carry around on the client. The reaction
+// queue in particular has to live somewhere shared so messageCreate can
+// push to it and the interval below can drain it.
 client.commands = new Collection();
 client.reactionQueue = [];
 client.toggleableCommands = [];
 
-// Load events
+// Auto-discover every file in events/ and wire it up. Each event module
+// exports { name, execute, once? } — the once flag is used for one-shot
+// hooks like 'clientReady'.
 async function loadEvents() {
     const eventsPath = path.join(__dirname, 'events');
     const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
@@ -49,24 +54,26 @@ async function loadEvents() {
     log(chalk.cyanBright('Loading events'));
 }
 
-// Set bot presence
 client.once('clientReady', () => {
     const shardId = client.shard?.ids[0] ?? 0;
     log(chalk.greenBright(`[Shard ${shardId}] Logged in as ${client.user?.tag}`));
     client.user?.setActivity('Gayness', { type: ActivityType.Watching });
 
-    // Only rotate banners on shard 0 to avoid redundant API calls
+    // Banners are a bot-wide thing, not per-shard. Running the rotater on
+    // every shard would just hammer Discord with identical PATCH calls.
     if (shardId === 0) {
         startBannerRotater(client);
     }
 });
 
-// Start reaction queue processor
+// Drain the reaction queue once a second. The 1s cadence is deliberately
+// slack — Discord's reaction endpoint is rate limited and we'd rather batch
+// up a backlog than trickle at the maximum rate and risk 429s.
 setInterval(() => processReactionQueue(client.reactionQueue), 1000);
 
-// Startup sequence
 async function start() {
-    // Only print the boot banner on shard 0 (or when not sharded)
+    // Pretty banner + boot log only once, not five times over. If we're
+    // unsharded SHARD_ID is unset, which we also treat as "go ahead".
     const shardId = process.env.SHARD_ID ? parseInt(process.env.SHARD_ID) : null;
     if (shardId === null || shardId === 0) {
         asciiArt();
@@ -76,7 +83,9 @@ async function start() {
     await loadCommands(client);
     await loadEvents();
 
-    // Only deploy commands from shard 0 to avoid rate-limit spam across shards
+    // Same reasoning as banners: command deployment is global, shard 0 only.
+    // Otherwise every shard races to PUT the same command list and we eat
+    // five times the rate limit budget for no gain.
     if (shardId === null || shardId === 0) {
         await deployCommands(client);
     }
