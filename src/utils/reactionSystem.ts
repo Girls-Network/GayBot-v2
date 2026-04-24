@@ -19,6 +19,19 @@ export interface ReactionQueueEntry {
     message: Message | PartialMessage;
     emoji: string;
     title: string;
+    /**
+     * Discord user ID to gate opt-outs against. For PK-proxied messages this is
+     * the real user behind the proxy (resolved in messageCreate via PK's API),
+     * not the webhook bot's ID.
+     */
+    authorId: string;
+    /**
+     * PK system hid the sender belongs to, if any. Populated for PK-proxied
+     * messages; null for regular Discord users (or webhooks that aren't PK).
+     * Used to honour system-level opt-outs that cascade across every account
+     * in the system.
+     */
+    systemId: string | null;
 }
 
 // Load emoji configuration
@@ -92,10 +105,11 @@ export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise
         try {
             const message = await entry.message.fetch();
 
-            const userId  = message.author?.id ?? null;
+            // entry.authorId is the real user ID (PK-resolved for proxied
+            // messages, or the Discord author for everyone else).
             const guildId = message.guildId ?? null;
 
-            if (!userId || !isReactionAllowed(entry.title, userId, guildId)) {
+            if (!isReactionAllowed(entry.title, entry.authorId, guildId, entry.systemId)) {
                 isProcessing = false;
                 if (queue.length > 0) setTimeout(() => processReactionQueue(queue), 500);
                 return;

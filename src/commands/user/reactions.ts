@@ -19,26 +19,63 @@ import {
     enableAllUserReactions,
     disableUserEmojis,
     enableUserEmojis,
-    ReactionData,
+    getSystemReactionPrefs,
+    disableAllSystemReactions,
+    enableAllSystemReactions,
+    disableSystemEmojis,
+    enableSystemEmojis,
 } from '../../utils/reactionPreferences';
+import { resolveSystemByDiscordUser } from '../../pk';
+import { logError } from '../../utils/logger';
+
+// ─── PK cascade helpers ───────────────────────────────────────────────────────
+
+/**
+ * Resolve the invoking user's PK system, if any. Swallows API failures —
+ * cascading is best-effort; the user-level opt-out always applies regardless.
+ */
+async function tryResolveSystem(discordUserId: string): Promise<string | null> {
+    try {
+        return await resolveSystemByDiscordUser(discordUserId);
+    } catch (err) {
+        logError(err, 'pk.resolveSystemByDiscordUser');
+        return null;
+    }
+}
+
+/** Union of user + system disabled titles, de-duplicated. */
+function mergedDisabled(userId: string, systemId: string | null): string[] {
+    const user = getUserReactionPrefs(userId).disabled_emojis;
+    if (!systemId) return [...user];
+    const system = getSystemReactionPrefs(systemId).disabled_emojis;
+    return Array.from(new Set([...user, ...system]));
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function buildStatusEmbed(prefs: ReactionData, displayName: string): EmbedBuilder {
-    const allDisabled  = prefs.disabled_emojis.length === ALL_EMOJI_TITLES.length;
-    const noneDisabled = prefs.disabled_emojis.length === 0;
+function buildStatusEmbed(
+    disabled: string[],
+    displayName: string,
+    systemId: string | null,
+): EmbedBuilder {
+    const allDisabled  = disabled.length === ALL_EMOJI_TITLES.length;
+    const noneDisabled = disabled.length === 0;
 
     let statusLine: string;
     if (allDisabled)       statusLine = '🔴 All reactions disabled';
     else if (noneDisabled) statusLine = '🟢 All reactions enabled';
-    else                   statusLine = `🟡 Some reactions disabled (${prefs.disabled_emojis.length}/${ALL_EMOJI_TITLES.length})`;
+    else                   statusLine = `🟡 Some reactions disabled (${disabled.length}/${ALL_EMOJI_TITLES.length})`;
 
-    const disabledList = prefs.disabled_emojis.length > 0
-        ? prefs.disabled_emojis.map(t => `${titleToEmoji(t) ?? ''} ${t}`.trim()).join('\n')
+    if (systemId) {
+        statusLine += `\n🔗 Linked to PluralKit system \`${systemId}\` — prefs apply to every account in the system.`;
+    }
+
+    const disabledList = disabled.length > 0
+        ? disabled.map(t => `${titleToEmoji(t) ?? ''} ${t}`.trim()).join('\n')
         : '_None_';
 
     const enabledList = ALL_EMOJI_TITLES
-        .filter(t => !prefs.disabled_emojis.includes(t))
+        .filter(t => !disabled.includes(t))
         .map(t => `${titleToEmoji(t) ?? ''} ${t}`.trim())
         .join('\n') || '_None_';
 
@@ -106,15 +143,18 @@ export default {
     async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
         const sub     = interaction.options.getSubcommand();
         const focused = interaction.options.getFocused().toLowerCase();
-        const prefs   = getUserReactionPrefs(interaction.user.id);
+        // Autocomplete reflects the effective (user + system) set so plurals
+        // see the truth of what's disabled, not just their own file.
+        const systemId = await tryResolveSystem(interaction.user.id);
+        const disabled = mergedDisabled(interaction.user.id, systemId);
 
         let candidates: string[] = [];
 
         if (sub === 'disable') {
-            const notYet = ALL_EMOJI_TITLES.filter(t => !prefs.disabled_emojis.includes(t));
+            const notYet = ALL_EMOJI_TITLES.filter(t => !disabled.includes(t));
             candidates = notYet.length > 0 ? ['All', ...notYet] : [];
         } else if (sub === 'enable') {
-            candidates = prefs.disabled_emojis.length > 0 ? ['All', ...prefs.disabled_emojis] : [];
+            candidates = disabled.length > 0 ? ['All', ...disabled] : [];
         }
 
         await interaction.respond(
@@ -128,28 +168,37 @@ export default {
     async execute(interaction: CommandInteraction, _client: any): Promise<void> {
         if (!interaction.isChatInputCommand()) return;
 
-        const sub = interaction.options.getSubcommand();
+        const sub      = interaction.options.getSubcommand();
+        const userId   = interaction.user.id;
+        const systemId = await tryResolveSystem(userId);
 
         // ── status ────────────────────────────────────────────────────────
         if (sub === 'status') {
-            const prefs = getUserReactionPrefs(interaction.user.id);
-            const embed = buildStatusEmbed(prefs, interaction.user.displayName);
+            const disabled = mergedDisabled(userId, systemId);
+            const embed = buildStatusEmbed(disabled, interaction.user.displayName, systemId);
             await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
             return;
         }
 
         const reaction = interaction.options.getString('reaction', true);
+        const label    = reaction === 'All' ? 'All reactions' : `**${reaction}**`;
+        const emoji    = reaction === 'All' ? '' : (titleToEmoji(reaction) ?? '');
 
         // ── disable ───────────────────────────────────────────────────────
         if (sub === 'disable') {
-            const prefs = reaction === 'All'
-                ? disableAllUserReactions(interaction.user.id)
-                : disableUserEmojis(interaction.user.id, [reaction]);
+            if (reaction === 'All') {
+                disableAllUserReactions(userId);
+                if (systemId) disableAllSystemReactions(systemId);
+            } else {
+                disableUserEmojis(userId, [reaction]);
+                if (systemId) disableSystemEmojis(systemId, [reaction]);
+            }
 
-            const label = reaction === 'All' ? 'All reactions' : `**${reaction}**`;
-            const emoji = reaction === 'All' ? '' : (titleToEmoji(reaction) ?? '');
+            const scopeNote = systemId
+                ? ` (applied to your PluralKit system \`${systemId}\` — every account in the system is covered)`
+                : '';
             await interaction.reply({
-                content: `✅ ${emoji} ${label} disabled on your messages.`.trim(),
+                content: `✅ ${emoji} ${label} disabled on your messages.${scopeNote}`.trim(),
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -157,14 +206,19 @@ export default {
 
         // ── enable ────────────────────────────────────────────────────────
         if (sub === 'enable') {
-            const prefs = reaction === 'All'
-                ? enableAllUserReactions(interaction.user.id)
-                : enableUserEmojis(interaction.user.id, [reaction]);
+            if (reaction === 'All') {
+                enableAllUserReactions(userId);
+                if (systemId) enableAllSystemReactions(systemId);
+            } else {
+                enableUserEmojis(userId, [reaction]);
+                if (systemId) enableSystemEmojis(systemId, [reaction]);
+            }
 
-            const label = reaction === 'All' ? 'All reactions' : `**${reaction}**`;
-            const emoji = reaction === 'All' ? '' : (titleToEmoji(reaction) ?? '');
+            const scopeNote = systemId
+                ? ` (applied to your PluralKit system \`${systemId}\` — every account in the system is covered)`
+                : '';
             await interaction.reply({
-                content: `✅ ${emoji} ${label} re-enabled on your messages.`.trim(),
+                content: `✅ ${emoji} ${label} re-enabled on your messages.${scopeNote}`.trim(),
                 flags: MessageFlags.Ephemeral,
             });
         }

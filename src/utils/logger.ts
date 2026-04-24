@@ -16,6 +16,32 @@ if (!fs.existsSync(LOG_DIR)) {
     fs.mkdirSync(LOG_DIR, { recursive: true });
 }
 
+/**
+ * Read the bot version from package.json at runtime.
+ *
+ * We resolve relative to __dirname so it works from both `dist/utils/` (prod)
+ * and `src/utils/` (ts-node dev). Reading lazily with try/catch means a
+ * missing/malformed package.json downgrades to "unknown" instead of crashing
+ * boot.
+ */
+function getBotVersion(): string {
+    // Walk up to the project root from wherever this file runs.
+    const candidates = [
+        path.join(__dirname, '..', '..', 'package.json'),        // dist/utils/logger.js -> ./package.json
+        path.join(__dirname, '..', '..', '..', 'package.json'),  // src/utils/logger.ts under ts-node
+    ];
+    for (const p of candidates) {
+        try {
+            if (!fs.existsSync(p)) continue;
+            const pkg = JSON.parse(fs.readFileSync(p, 'utf-8')) as { version?: string };
+            if (typeof pkg.version === 'string') return pkg.version;
+        } catch {
+            // try next candidate
+        }
+    }
+    return 'unknown';
+}
+
 function getTimestamp(): string {
     return new Date().toISOString();
 }
@@ -62,7 +88,22 @@ export function asciiArt(): void {
 }
 
 export function logBoot(): void {
-    console.log(chalk.magentaBright('\n╔════════════════════════════════════════════════════╗'));
-    console.log(chalk.magentaBright('║  Aria Rees & Clove Nytrix Doughmination Twilight   ║'));
-    console.log(chalk.magentaBright('╚════════════════════════════════════════════════════╝\n'));
+    const authors = 'Aria Rees & Clove Nytrix Doughmination Twilight';
+    const version = `v${getBotVersion()}`;
+
+    // Box width = longest line + 4 (2 spaces of padding each side).
+    const innerWidth = Math.max(authors.length, version.length) + 4;
+    const border = '═'.repeat(innerWidth);
+
+    const center = (s: string): string => {
+        const total = innerWidth - s.length;
+        const left  = Math.floor(total / 2);
+        const right = total - left;
+        return ' '.repeat(left) + s + ' '.repeat(right);
+    };
+
+    console.log(chalk.magentaBright(`\n╔${border}╗`));
+    console.log(chalk.magentaBright(`║${center(authors)}║`));
+    console.log(chalk.magentaBright(`║${center(version)}║`));
+    console.log(chalk.magentaBright(`╚${border}╝\n`));
 } 

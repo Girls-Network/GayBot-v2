@@ -9,6 +9,8 @@ import {
     writeUserFile,
     readGuildFile,
     writeGuildFile,
+    readPkSystemFile,
+    writePkSystemFile,
     ReactionData,
 } from './dataManager';
 import emojiConfigData from '../configs/emoji-config.json';
@@ -119,6 +121,44 @@ export function enableGuildEmojis(guildId: string, titles: string[]): ReactionDa
     });
 }
 
+// ─── PK system preferences ────────────────────────────────────────────────────
+
+export function getSystemReactionPrefs(systemId: string): ReactionData {
+    return readPkSystemFile(systemId).reactions ?? { ...DEFAULT_REACTIONS };
+}
+
+export function setSystemReactionPrefs(systemId: string, prefs: ReactionData): ReactionData {
+    const file = readPkSystemFile(systemId);
+    writePkSystemFile(systemId, { ...file, reactions: prefs });
+    return prefs;
+}
+
+/** Disable all reactions for an entire PK system. */
+export function disableAllSystemReactions(systemId: string): ReactionData {
+    return setSystemReactionPrefs(systemId, { disabled_emojis: [...ALL_EMOJI_TITLES] });
+}
+
+/** Enable all reactions for an entire PK system. */
+export function enableAllSystemReactions(systemId: string): ReactionData {
+    return setSystemReactionPrefs(systemId, { disabled_emojis: [] });
+}
+
+/** Add titles to a PK system's disabled list. */
+export function disableSystemEmojis(systemId: string, titles: string[]): ReactionData {
+    const prefs = getSystemReactionPrefs(systemId);
+    return setSystemReactionPrefs(systemId, {
+        disabled_emojis: Array.from(new Set([...prefs.disabled_emojis, ...titles])),
+    });
+}
+
+/** Remove titles from a PK system's disabled list. */
+export function enableSystemEmojis(systemId: string, titles: string[]): ReactionData {
+    const prefs = getSystemReactionPrefs(systemId);
+    return setSystemReactionPrefs(systemId, {
+        disabled_emojis: prefs.disabled_emojis.filter(t => !titles.includes(t)),
+    });
+}
+
 // ─── Reaction gate ────────────────────────────────────────────────────────────
 
 /**
@@ -127,16 +167,29 @@ export function enableGuildEmojis(guildId: string, titles: string[]): ReactionDa
  * Returns true  → react
  * Returns false → skip
  *
- * Guild rules are checked first; most restrictive wins.
+ * Layered opt-outs — most restrictive wins. Any of these disabling the title
+ * blocks the reaction:
+ *   1. Guild has it disabled server-wide.
+ *   2. PK system has it disabled (applies to every account in that system).
+ *   3. The sender Discord user has it disabled.
+ *
+ * `systemId` is populated for PK-proxied messages (resolved via PK's API
+ * upstream). For non-proxied traffic it's omitted and only (1) and (3) apply.
  */
 export function isReactionAllowed(
     title: string,
     userId: string,
     guildId: string | null,
+    systemId?: string | null,
 ): boolean {
     if (guildId) {
         const guild = getGuildReactionPrefs(guildId);
         if (guild.disabled_emojis.includes(title)) return false;
+    }
+
+    if (systemId) {
+        const system = getSystemReactionPrefs(systemId);
+        if (system.disabled_emojis.includes(title)) return false;
     }
 
     const user = getUserReactionPrefs(userId);
