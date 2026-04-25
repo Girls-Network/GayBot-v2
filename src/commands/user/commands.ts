@@ -4,6 +4,18 @@
  * See LICENCE in the project root for full licence information.
  */
 
+// /user commands — per-user opt-out for being targeted by others' commands.
+// Specifically the "interaction" commands like /yuri kiss @other-user — if
+// you don't want random people kissing you, you set yourself off the list
+// here and the kiss command refuses to fire on you.
+//
+// The list of "toggleable" commands is built up at startup by the command
+// loader (see handlers/commandHandler.ts) and stashed on the client for
+// us to pull from. We don't enumerate it here — that'd be duplication and
+// would drift the moment someone added a new yuri/* subcommand.
+//
+// Storage lives under data/users/{id}.json in the `disabled_commands` slot.
+
 import {
     CommandInteraction,
     AutocompleteInteraction,
@@ -15,15 +27,23 @@ import { readUserFile, writeUserFile } from '../../utils/dataManager';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Read the list of dispatch keys (e.g. "yuri kiss") this user has opted out
+// of. Defaults to empty array — we never want callers to deal with undefined.
 function getUserDisabledCommands(userId: string): string[] {
     return readUserFile(userId).disabled_commands ?? [];
 }
 
+// Whole-list replace. Same read-merge-write dance as the reaction prefs:
+// the disabled_commands slot lives next to identity/reactions and we don't
+// want to clobber siblings.
 function setUserDisabledCommands(userId: string, list: string[]): void {
     const file = readUserFile(userId);
     writeUserFile(userId, { ...file, disabled_commands: list });
 }
 
+// Render the user's current opt-outs as an embed. Same three-state colour
+// scheme as /admin reactions for visual consistency — red/green/yellow tells
+// you at a glance what shape your prefs are in.
 function buildStatusEmbed(userId: string, displayName: string, disabled: string[], all: string[]): EmbedBuilder {
     const noneDisabled = disabled.length === 0;
     const allDisabled  = disabled.length === all.length;
@@ -33,6 +53,9 @@ function buildStatusEmbed(userId: string, displayName: string, disabled: string[
     else if (noneDisabled) statusLine = '🟢 All toggleable commands enabled';
     else               statusLine = `🟡 Some commands disabled (${disabled.length}/${all.length})`;
 
+    // Backticks render as inline code in Discord, which makes command names
+    // visually distinct from regular text. _None_ italic placeholder when
+    // the field would otherwise be empty.
     const disabledList = disabled.length > 0 ? disabled.map(c => `\`${c}\``).join('\n') : '_None_';
     const enabledList  = all.filter(c => !disabled.includes(c)).map(c => `\`${c}\``).join('\n') || '_None_';
 
@@ -97,6 +120,14 @@ export default {
         ],
     },
 
+    // Autocomplete on the `command` field. Same trick as /admin reactions:
+    // tailor the list to the verb. Disable shows things you haven't disabled
+    // yet, enable shows things you have. "All" prepends when relevant.
+    //
+    // toggleableCommands is the list the command loader builds at boot —
+    // every dispatch key whose handler opts into the toggle system. We cast
+    // the client as `any` because we're reaching for a custom property
+    // that isn't part of the discord.js Client type.
     async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
         const client      = interaction.client as any;
         const all: string[] = client.toggleableCommands ?? [];
@@ -107,12 +138,16 @@ export default {
         let candidates: string[] = [];
 
         if (sub === 'disable') {
+            // Only show commands the user hasn't already disabled.
             const notYet = all.filter(c => !disabled.includes(c));
             candidates = notYet.length > 0 ? ['All', ...notYet] : [];
         } else if (sub === 'enable') {
+            // Only show ones currently disabled — nothing to enable otherwise.
             candidates = disabled.length > 0 ? ['All', ...disabled] : [];
         }
 
+        // Discord's 25-result autocomplete cap. Substring match on lowercase
+        // is the right balance for our small command list.
         await interaction.respond(
             candidates
                 .filter(c => c.toLowerCase().includes(focused))
@@ -128,6 +163,7 @@ export default {
         const all: string[] = client.toggleableCommands ?? [];
 
         // ── status ────────────────────────────────────────────────────────
+        // Read-only view. Renders the embed with current state and bails.
         if (sub === 'status') {
             const disabled = getUserDisabledCommands(interaction.user.id);
             const embed    = buildStatusEmbed(interaction.user.id, interaction.user.displayName, disabled, all);
@@ -139,6 +175,8 @@ export default {
         const disabled = getUserDisabledCommands(interaction.user.id);
 
         // ── disable ───────────────────────────────────────────────────────
+        // "All" replaces the list with the master set; single-command disable
+        // appends and dedupes via Set so re-disabling is harmless.
         if (sub === 'disable') {
             const newList = command === 'All'
                 ? [...all]
@@ -146,6 +184,8 @@ export default {
 
             setUserDisabledCommands(interaction.user.id, newList);
 
+            // Pluralisation hack: "them" if it's a bulk action, "it" if a
+            // single command. Cleaner than templating the noun separately.
             const label = command === 'All' ? 'All commands' : `\`${command}\``;
             await interaction.reply({
                 content: `✅ ${label} disabled — others can no longer use ${command === 'All' ? 'them' : 'it'} on you.`,
@@ -155,6 +195,8 @@ export default {
         }
 
         // ── enable ────────────────────────────────────────────────────────
+        // Mirror of disable. "All" empties the list (everything re-enabled);
+        // single-command enable filters that name out.
         if (sub === 'enable') {
             const newList = command === 'All'
                 ? []

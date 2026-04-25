@@ -11,8 +11,9 @@ import {
 } from 'discord.js';
 import boopGifs from '../../configs/yuri/boop.json';
 
+// Sibling of kiss.ts and hug.ts — see kiss.ts for the merge mechanics.
 export default {
-    toggle: true,
+    toggle: true, // boop opt-outs honoured for both server and target
     data: {
         name: 'yuri',
         description: 'Yuri commands 🌸',
@@ -37,6 +38,7 @@ export default {
         if (!interaction.isChatInputCommand()) return;
 
         const targetUser = interaction.options.getUser('target', true);
+        // Random gif from configs/yuri/boop.json.
         const gif = boopGifs[Math.floor(Math.random() * boopGifs.length)];
 
         const embed = new EmbedBuilder()

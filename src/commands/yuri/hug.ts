@@ -11,8 +11,10 @@ import {
 } from 'discord.js';
 import hugGifs from '../../configs/yuri/hug.json';
 
+// Sibling of kiss.ts and boop.ts — see kiss.ts for the full rundown of how
+// these three files end up registered as one /yuri command with three subs.
 export default {
-    toggle: true,
+    toggle: true, // user/server can opt out of being hugged
     data: {
         name: 'yuri',
         description: 'Yuri commands 🌸',
@@ -37,6 +39,7 @@ export default {
         if (!interaction.isChatInputCommand()) return;
 
         const targetUser = interaction.options.getUser('target', true);
+        // Random gif from configs/yuri/hug.json — add more there, not here.
         const gif = hugGifs[Math.floor(Math.random() * hugGifs.length)];
 
         const embed = new EmbedBuilder()
@@ -44,6 +47,7 @@ export default {
             .setImage(gif)
             .setFooter({ text: 'GayBot v2', iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' });
 
+        // Visible reply — everyone in the channel should see the hug.
         await interaction.reply({
             content: `*${interaction.user} hugs ${targetUser}!* 🫂`,
             embeds: [embed],
