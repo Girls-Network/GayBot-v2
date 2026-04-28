@@ -6,14 +6,14 @@
  * LICENCE EXEMPTION: You can use this code in your own projects without needing to credit me or anything, it's a simple utility script and I don't mind if people use it.
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const assetsDir = path.join(__dirname, 'assets');
-const files = fs.readdirSync(assetsDir).filter(f => f.endsWith('.png'));
+const assetsDir = path.join(__dirname, "assets");
+const files = fs.readdirSync(assetsDir).filter((f) => f.endsWith(".png"));
 
 if (files.length === 0) {
-    console.log('No PNG files found in assets/');
+    console.log("No PNG files found in assets/");
     process.exit(1);
 }
 
@@ -28,7 +28,7 @@ for (let i = numbers.length - 1; i > 0; i--) {
 files.forEach((file, i) => {
     fs.renameSync(
         path.join(assetsDir, file),
-        path.join(assetsDir, `__temp_${i}.png`)
+        path.join(assetsDir, `__temp_${i}.png`),
     );
 });
 
@@ -37,7 +37,7 @@ files.forEach((_, i) => {
     const newName = `${numbers[i]}.png`;
     fs.renameSync(
         path.join(assetsDir, `__temp_${i}.png`),
-        path.join(assetsDir, newName)
+        path.join(assetsDir, newName),
     );
     console.log(`Renamed: ${files[i]} → ${newName}`);
 });

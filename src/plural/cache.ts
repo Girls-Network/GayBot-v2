@@ -15,4 +15,4 @@
 // per-key eviction, etc.), this is also the file to extend — wrap the
 // generic LruCache with whatever you need and re-export the wrapper instead
 // of the raw class.
-export { LruCache } from '../pk/cache';
+export { LruCache } from "../pk/cache";

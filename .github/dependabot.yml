@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Enable version updates for npm
+  # ─── npm (Node dependencies) ────────────────────────────────────────────────
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -8,8 +8,6 @@ updates:
       time: "09:00"
       timezone: "UTC"
     open-pull-requests-limit: 2
-    reviewers:
-      - "EstrogenHRT"
     assignees:
       - "AriasADev"
       - "EstrogenHRT"
@@ -19,8 +17,23 @@ updates:
     labels:
       - "dependencies"
       - "npm"
-    
-  # Enable version updates for Docker
+    # Group related minor/patch bumps into single PRs to cut noise.
+    groups:
+      types:
+        patterns:
+          - "@types/*"
+      eslint:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@typescript-eslint/*"
+          - "typescript-eslint"
+      prettier:
+        patterns:
+          - "prettier"
+          - "prettier-*"
+
+  # ─── Docker base images ─────────────────────────────────────────────────────
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
@@ -28,8 +41,6 @@ updates:
       time: "09:00"
       timezone: "UTC"
     open-pull-requests-limit: 1
-    reviewers:
-      - "EstrogenHRT"
     assignees:
       - "AriasADev"
       - "EstrogenHRT"
@@ -39,3 +50,28 @@ updates:
       - "dependencies"
       - "docker"
     rebase-strategy: "auto"
+
+  # ─── GitHub Actions used by .github/workflows/*.yml ─────────────────────────
+  # Keeps actions/checkout, actions/setup-node, etc. up to date.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 1
+    assignees:
+      - "AriasADev"
+      - "EstrogenHRT"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    # Roll all action bumps into one weekly PR — they almost never conflict.
+    groups:
+      actions:
+        patterns:
+          - "*"

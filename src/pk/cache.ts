@@ -12,7 +12,7 @@ export class LruCache<K, V> {
     private readonly map = new Map<K, V>();
 
     constructor(private readonly max: number) {
-        if (max <= 0) throw new Error('LruCache max must be > 0');
+        if (max <= 0) throw new Error("LruCache max must be > 0");
     }
 
     get(key: K): V | undefined {

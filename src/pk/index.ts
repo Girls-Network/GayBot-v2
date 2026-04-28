@@ -17,13 +17,17 @@
 
 // The two main entry points — message ID → real sender, and Discord
 // user ID → PK system hid. Both are cached and de-duped internally.
-export { resolveProxiedSender, resolveSystemByDiscordUser } from './resolver';
+export { resolveProxiedSender, resolveSystemByDiscordUser } from "./resolver";
 
 // Error type for non-404/403 failures, and the User-Agent string
 // (exported so it can be checked from tests / shared with /p/r if we
 // ever want to confirm we're using the same UA across both clients).
-export { PkApiError, PK_USER_AGENT } from './client';
+export { PkApiError, PK_USER_AGENT } from "./client";
 
 // Type-only exports so consumers can name our shapes without dragging
 // in the runtime modules.
-export type { ResolvedSender, PkMessageResponse, PkSystemResponse } from './types';
+export type {
+    ResolvedSender,
+    PkMessageResponse,
+    PkSystemResponse,
+} from "./types";

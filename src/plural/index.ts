@@ -17,22 +17,12 @@
 
 // Resolvers — the message ID one is live; the account-by-Discord-user
 // one is a stub returning null until we get the right endpoint from ant.
-export {
-    resolveProxiedSender,
-    resolveAccountByDiscordUser,
-} from './resolver';
+export { resolveProxiedSender, resolveAccountByDiscordUser } from "./resolver";
 
 // Error class, shared User-Agent (matched to PK's), and a token-presence
 // check the rest of the codebase can use to gate auth-only behaviours
 // without having to peek at process.env directly.
-export {
-    PluralApiError,
-    PLURAL_USER_AGENT,
-    hasPluralToken,
-} from './client';
+export { PluralApiError, PLURAL_USER_AGENT, hasPluralToken } from "./client";
 
 // Types only — no runtime cost on the import side.
-export type {
-    ResolvedPluralSender,
-    PluralMessageResponse,
-} from './types';
+export type { ResolvedPluralSender, PluralMessageResponse } from "./types";

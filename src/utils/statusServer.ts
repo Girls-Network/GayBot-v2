@@ -4,18 +4,25 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import * as http from 'http';
-import * as fs from 'fs';
-import * as path from 'path';
-import { ShardingManager } from 'discord.js';
-import { log, logError } from './logger';
-import chalk from 'chalk';
+import * as http from "http";
+import * as fs from "fs";
+import * as path from "path";
+import { ShardingManager } from "discord.js";
+import { log, logError } from "./logger";
+import chalk from "chalk";
 
-const STATUS_PORT = parseInt(process.env.STATUS_PORT ?? '5000', 10);
+const STATUS_PORT = parseInt(process.env.STATUS_PORT ?? "5000", 10);
 
 interface ShardStatus {
     id: number;
-    status: 'ready' | 'idle' | 'nearly' | 'disconnected' | 'reconnecting' | 'connecting' | 'unknown';
+    status:
+        | "ready"
+        | "idle"
+        | "nearly"
+        | "disconnected"
+        | "reconnecting"
+        | "connecting"
+        | "unknown";
     ping: number;
     guilds: number;
     uptime: number; // seconds
@@ -39,7 +46,7 @@ async function collectStats(manager: ShardingManager): Promise<StatusPayload> {
         let ping = -1;
         let guilds = 0;
         let uptime = 0;
-        let status: ShardStatus['status'] = 'unknown';
+        let status: ShardStatus["status"] = "unknown";
 
         try {
             const results = await Promise.race([
@@ -49,37 +56,46 @@ async function collectStats(manager: ShardingManager): Promise<StatusPayload> {
                     shard.eval((c: any) => Math.floor((c.uptime ?? 0) / 1000)),
                     shard.eval((c: any) => c.ws.status),
                 ]),
-                new Promise<null>(resolve => setTimeout(() => resolve(null), 2000)),
+                new Promise<null>((resolve) =>
+                    setTimeout(() => resolve(null), 2000),
+                ),
             ]);
 
             if (results) {
-                const [p, g, u, s] = results as [number, number, number, number];
+                const [p, g, u, s] = results as [
+                    number,
+                    number,
+                    number,
+                    number,
+                ];
                 ping = p;
                 guilds = g;
                 uptime = u;
                 // discord.js WebSocket status codes: 0=READY, 1=CONNECTING, 2=RECONNECTING, 3=IDLE, 4=NEARLY, 5=DISCONNECTED
-                const statusMap: Record<number, ShardStatus['status']> = {
-                    0: 'ready',
-                    1: 'connecting',
-                    2: 'reconnecting',
-                    3: 'idle',
-                    4: 'nearly',
-                    5: 'disconnected',
+                const statusMap: Record<number, ShardStatus["status"]> = {
+                    0: "ready",
+                    1: "connecting",
+                    2: "reconnecting",
+                    3: "idle",
+                    4: "nearly",
+                    5: "disconnected",
                 };
-                status = statusMap[s] ?? 'unknown';
+                status = statusMap[s] ?? "unknown";
             } else {
-                status = 'disconnected';
+                status = "disconnected";
             }
         } catch {
-            status = 'disconnected';
+            status = "disconnected";
         }
 
         shardStatuses.push({ id, status, ping, guilds, uptime });
     }
 
     const totalGuilds = shardStatuses.reduce((acc, s) => acc + s.guilds, 0);
-    const pings = shardStatuses.filter(s => s.ping >= 0).map(s => s.ping);
-    const averagePing = pings.length ? Math.round(pings.reduce((a, b) => a + b, 0) / pings.length) : -1;
+    const pings = shardStatuses.filter((s) => s.ping >= 0).map((s) => s.ping);
+    const averagePing = pings.length
+        ? Math.round(pings.reduce((a, b) => a + b, 0) / pings.length)
+        : -1;
     const uptime = Math.floor((Date.now() - startedAt.getTime()) / 1000);
 
     return {
@@ -96,49 +112,55 @@ export function startStatusServer(manager: ShardingManager): void {
     // status.html lives at the project root, not inside src/. From dist/utils/
     // that's two directories up; ts-node's src/utils/ ends up at the same
     // relative place because we're one level deeper than dist/.
-    const htmlPath = path.join(__dirname, '../../status.html');
+    const htmlPath = path.join(__dirname, "../../status.html");
 
     const server = http.createServer(async (req, res) => {
-        const url = req.url ?? '/';
+        const url = req.url ?? "/";
 
         // /api/status — machine-readable. CORS is wide open on purpose so
         // the dashboard HTML can be hosted anywhere and still poll us.
-        if (url === '/api/status') {
+        if (url === "/api/status") {
             try {
                 const payload = await collectStats(manager);
                 res.writeHead(200, {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
                 });
                 res.end(JSON.stringify(payload));
             } catch (err) {
-                logError(err, 'StatusServer /api/status');
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Failed to collect stats' }));
+                logError(err, "StatusServer /api/status");
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "Failed to collect stats" }));
             }
             return;
         }
 
         // / — human-facing dashboard page.
-        if (url === '/' || url === '/index.html') {
+        if (url === "/" || url === "/index.html") {
             if (fs.existsSync(htmlPath)) {
-                const html = fs.readFileSync(htmlPath, 'utf-8');
-                res.writeHead(200, { 'Content-Type': 'text/html' });
+                const html = fs.readFileSync(htmlPath, "utf-8");
+                res.writeHead(200, { "Content-Type": "text/html" });
                 res.end(html);
             } else {
                 res.writeHead(404);
-                res.end('Dashboard not found. Place status.html next to package.json.');
+                res.end(
+                    "Dashboard not found. Place status.html next to package.json.",
+                );
             }
             return;
         }
 
         res.writeHead(404);
-        res.end('Not Found');
+        res.end("Not Found");
     });
 
     server.listen(STATUS_PORT, () => {
-        log(chalk.cyanBright(`[StatusServer] Running on http://localhost:${STATUS_PORT}`));
+        log(
+            chalk.cyanBright(
+                `[StatusServer] Running on http://localhost:${STATUS_PORT}`,
+            ),
+        );
     });
 
-    server.on('error', err => logError(err, 'StatusServer'));
+    server.on("error", (err) => logError(err, "StatusServer"));
 }

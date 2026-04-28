@@ -4,11 +4,11 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import { Message } from 'discord.js';
-import { KeywordChecker, ReactionQueueEntry } from '../utils/reactionSystem';
-import { resolveProxiedSender as resolvePkSender } from '../pk';
-import { resolveProxiedSender as resolvePluralSender } from '../plural';
-import { logError } from '../utils/logger';
+import { Message } from "discord.js";
+import { KeywordChecker, ReactionQueueEntry } from "../utils/reactionSystem";
+import { resolveProxiedSender as resolvePkSender } from "../pk";
+import { resolveProxiedSender as resolvePluralSender } from "../plural";
+import { logError } from "../utils/logger";
 
 interface ExtendedClient {
     reactionQueue: ReactionQueueEntry[];
@@ -17,7 +17,7 @@ interface ExtendedClient {
 const keywordChecker = new KeywordChecker();
 
 export default {
-    name: 'messageCreate',
+    name: "messageCreate",
     async execute(message: Message) {
         // Ignore bot messages but react to webhooks (PluralKit proxies come through as webhooks).
         if (message.author.bot && !message.webhookId) return;
@@ -52,25 +52,34 @@ export default {
                 } else {
                     // Not a PK message — try /p/r next.
                     try {
-                        const plural = await resolvePluralSender(message.channelId, message.id);
+                        const plural = await resolvePluralSender(
+                            message.channelId,
+                            message.id,
+                        );
                         if (plural) {
                             authorId = plural.senderId;
                             // systemId stays null — see the note above.
                         }
                     } catch (err) {
-                        logError(err, 'plural.resolveProxiedSender');
+                        logError(err, "plural.resolveProxiedSender");
                     }
                 }
             } catch (err) {
                 // Never hold up reactions over an API hiccup. Log it, fall
                 // back to the webhook's own author ID, keep moving.
-                logError(err, 'pk.resolveProxiedSender');
+                logError(err, "pk.resolveProxiedSender");
             }
         }
 
         const client = message.client as unknown as ExtendedClient;
         for (const { emoji, title } of matches) {
-            client.reactionQueue.push({ message, emoji, title, authorId, systemId });
+            client.reactionQueue.push({
+                message,
+                emoji,
+                title,
+                authorId,
+                systemId,
+            });
         }
     },
 };

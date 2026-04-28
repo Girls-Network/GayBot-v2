@@ -4,8 +4,8 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import { logError } from '../utils/logger';
-import { CommandInteraction, Interaction } from 'discord.js';
+import { logError } from "../utils/logger";
+import { CommandInteraction, Interaction } from "discord.js";
 
 // Two thin wrappers that get called from the catch blocks in
 // events/interactionCreate.ts. They're separate because slash commands
@@ -21,10 +21,13 @@ import { CommandInteraction, Interaction } from 'discord.js';
 // Called from chat-input command catch blocks. The deferred/replied
 // branch matters because Discord rejects .reply() once you've already
 // responded — you have to call .editReply() instead.
-export async function handleCommandError(error: Error | unknown, interaction: CommandInteraction): Promise<void> {
+export async function handleCommandError(
+    error: Error | unknown,
+    interaction: CommandInteraction,
+): Promise<void> {
     logError(error, `Command: ${interaction.commandName}`);
 
-    const errorMessage = 'An error occurred while executing this command.';
+    const errorMessage = "An error occurred while executing this command.";
 
     try {
         if (interaction.deferred || interaction.replied) {
@@ -37,29 +40,35 @@ export async function handleCommandError(error: Error | unknown, interaction: Co
         }
     } catch (replyError) {
         // Discord rejected the apology. Nothing else we can do but log it.
-        logError(replyError, 'Error Handler Reply');
+        logError(replyError, "Error Handler Reply");
     }
 }
 
 // Same shape as above but for the broader Interaction type — buttons,
 // select menus, autocompletes, etc. Some of those (autocomplete in
 // particular) aren't repliable at all, hence the isRepliable() gate.
-export async function handleInteractionError(error: Error | unknown, interaction: Interaction): Promise<void> {
+export async function handleInteractionError(
+    error: Error | unknown,
+    interaction: Interaction,
+): Promise<void> {
     logError(error, `Interaction: ${interaction.id}`);
 
-    const errorMessage = 'An error occurred while processing this interaction.';
+    const errorMessage = "An error occurred while processing this interaction.";
 
     try {
         if (interaction.isRepliable()) {
             if (interaction.deferred || interaction.replied) {
                 await interaction.editReply({ content: errorMessage });
             } else {
-                await interaction.reply({ content: errorMessage, ephemeral: true });
+                await interaction.reply({
+                    content: errorMessage,
+                    ephemeral: true,
+                });
             }
         }
         // Non-repliable interactions just get the error logged. There's
         // no surface to apologise on, so we silently fall through.
     } catch (replyError) {
-        logError(replyError, 'Error Handler Reply');
+        logError(replyError, "Error Handler Reply");
     }
 }

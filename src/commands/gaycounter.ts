@@ -18,8 +18,8 @@
 import {
     CommandInteraction,
     EmbedBuilder,
-    ApplicationCommandOptionType
-} from 'discord.js';
+    ApplicationCommandOptionType,
+} from "discord.js";
 
 // Hand-picked overrides for the bit. Everyone else rolls on the deterministic
 // sin() below. The values have their own jokes baked in (69 for a plural
@@ -27,12 +27,12 @@ import {
 // etc.) — when a new regular joins and wants an override, drop them in here.
 // Add yourself at your own risk, we don't judge... much.
 const gaynessOverrides = new Map<string, number>([
-    ['652597508027187240', 1000], // @transbian
-    ['1125844710511104030', 69], // @doughmination.system
-    ['908055723659898902', 420], // @lillybanana.7z
-    ['855122091791089664', 54], // @primrosethelesbianlady
-    ['1110542429838397471', 200], // @msmoscar
-    ['527709099186716673', 200] // @theawesometaco
+    ["652597508027187240", 1000], // @transbian
+    ["1125844710511104030", 69], // @doughmination.system
+    ["908055723659898902", 420], // @lillybanana.7z
+    ["855122091791089664", 54], // @primrosethelesbianlady
+    ["1110542429838397471", 200], // @msmoscar
+    ["527709099186716673", 200], // @theawesometaco
 ]);
 
 // Deterministic pseudo-random gayness from the Discord ID.
@@ -60,27 +60,27 @@ function calculateGayness(userId: string): number {
     const decimal = Math.abs(Math.sin(seeding)) * 100;
     const gayness = parseFloat(decimal.toFixed(1));
     return gayness;
-
 }
 
 export default {
     data: {
-        name: 'gaycounter',
-        description: 'Find out how gay a user is!',
+        name: "gaycounter",
+        description: "Find out how gay a user is!",
         options: [
             {
                 type: ApplicationCommandOptionType.User,
-                name: 'target',
-                description: 'The user to check.',
-                required: false
-            }
+                name: "target",
+                description: "The user to check.",
+                required: false,
+            },
         ],
     },
-    async execute(interaction: CommandInteraction, client: any) {
+    async execute(interaction: CommandInteraction, _client: any) {
         if (!interaction.isChatInputCommand()) return;
         // Default to self-target if no @user given. Makes "/gaycounter" on
         // its own a quick "what's my number" check — which, yes, people do.
-        const targetUser = interaction.options.getUser('target') || interaction.user;
+        const targetUser =
+            interaction.options.getUser("target") || interaction.user;
 
         // deferReply because we reply publicly (not ephemeral) — this is a
         // fun bit the channel gets to see. Defer gives us breathing room
@@ -95,7 +95,7 @@ export default {
         // gets the spectrum-position nudge, and >80 gets the "max gay
         // energy" celebration. Overrides >100 (transbian's 1000) land
         // in the top bucket automatically, which is the intent.
-        let message = '';
+        let message = "";
         if (gayness < 20) {
             message = `**${targetUser.username}** is **${gayness}% gay**! Keep shining! 🌈`;
         } else if (gayness <= 80) {
@@ -107,10 +107,14 @@ export default {
         // 0x8e44ad is our pride-purple — the same colour /identity uses.
         // Keeps the bot's own output visually consistent across commands.
         const embed = new EmbedBuilder()
-            .setTitle('🏳️‍🌈 Gayness Percentage Calculator')
+            .setTitle("🏳️‍🌈 Gayness Percentage Calculator")
             .setDescription(message)
             .setColor(0x8e44ad)
-            .setFooter({ text: 'GayBot v2', iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' });
+            .setFooter({
+                text: "GayBot v2",
+                iconURL:
+                    "https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png",
+            });
 
         // editReply because we deferred. No ephemeral flag — this is a
         // public message by design.

@@ -17,15 +17,15 @@ import {
     EmbedBuilder,
     ApplicationCommandOptionType,
     GuildMember,
-    MessageFlags
-} from 'discord.js';
+    MessageFlags,
+} from "discord.js";
 
 // Narrow response shape — the API returns more fields but these are the
 // only two we render. If we ever use more, expand this interface rather
 // than reaching for Record<string, any>.
 interface ApiResponse {
     content: string;
-    type: 'gender' | 'sexuality';
+    type: "gender" | "sexuality";
 }
 
 // Normalise the user's input so "Lesbians" and "lesbian" hit the same row
@@ -37,16 +37,21 @@ function normalizeTerm(term: string): string {
 
     // Plural stripping. Order matters: check `ies` before `es` before `s`
     // so "ladies" → "lady" and not "ladie" or "ladi".
-    if (normalized.endsWith('ies')) {
-        normalized = normalized.slice(0, -3) + 'y';
-    } else if (normalized.endsWith('es')) {
+    if (normalized.endsWith("ies")) {
+        normalized = normalized.slice(0, -3) + "y";
+    } else if (normalized.endsWith("es")) {
         normalized = normalized.slice(0, -2);
-    } else if (normalized.endsWith('s') && normalized.length > 2) {
+    } else if (normalized.endsWith("s") && normalized.length > 2) {
         // Don't remove 's' from short words (false positives like "gas")
         // or from words that naturally end in 's' and would get mangled —
         // "trans" → "tran" would be terrible. Expand this list when we
         // find new offenders.
-        const exceptionsEndingInS = ['trans', 'nonbinary', 'genderless', 'ageless'];
+        const exceptionsEndingInS = [
+            "trans",
+            "nonbinary",
+            "genderless",
+            "ageless",
+        ];
         if (!exceptionsEndingInS.includes(normalized)) {
             normalized = normalized.slice(0, -1);
         }
@@ -64,7 +69,7 @@ async function searchLgbtqTerm(term: string): Promise<ApiResponse | null> {
     // Our own API — same repo as the dataset at github.com/Girls-Network/LGBT-API.
     // If we ever stand up staging we'll probably want to env-var this, but for
     // now it's a single production endpoint.
-    const apiBase = 'https://api.girlsnetwork.dev';
+    const apiBase = "https://api.girlsnetwork.dev";
     // encodeURIComponent to keep weird characters from breaking the path —
     // the dataset uses hyphens and alphanumerics but defensive encoding
     // is cheap insurance.
@@ -72,9 +77,9 @@ async function searchLgbtqTerm(term: string): Promise<ApiResponse | null> {
 
     try {
         const response = await fetch(apiURL, {
-            method: 'GET',
+            method: "GET",
             headers: {
-                'Accept': 'application/json',
+                Accept: "application/json",
             },
         });
 
@@ -87,8 +92,12 @@ async function searchLgbtqTerm(term: string): Promise<ApiResponse | null> {
             }
             // Everything else is an actual error worth logging loudly
             // so we can chase API regressions.
-            console.log(`[LGBTQ Search] API error: ${response.status} ${response.statusText}`);
-            const errorText = await response.text().catch(() => 'Unable to read error');
+            console.log(
+                `[LGBTQ Search] API error: ${response.status} ${response.statusText}`,
+            );
+            const errorText = await response
+                .text()
+                .catch(() => "Unable to read error");
             console.log(`[LGBTQ Search] Error response: ${errorText}`);
             return null;
         }
@@ -109,32 +118,35 @@ async function searchLgbtqTerm(term: string): Promise<ApiResponse | null> {
 
 export default {
     data: {
-        name: 'lgbtqsearch',
-        description: 'Search for definitions of LGBTQIA+ terms',
+        name: "lgbtqsearch",
+        description: "Search for definitions of LGBTQIA+ terms",
         options: [
             {
                 type: ApplicationCommandOptionType.String,
-                name: 'term',
-                description: 'The term or sexuality to look up (e.g., agender, bi, nonbinary).',
-                required: true
+                name: "term",
+                description:
+                    "The term or sexuality to look up (e.g., agender, bi, nonbinary).",
+                required: true,
             },
             {
                 type: ApplicationCommandOptionType.User,
-                name: 'member',
-                description: 'Optional: A member to ping with the result.',
-                required: false
-            }
+                name: "member",
+                description: "Optional: A member to ping with the result.",
+                required: false,
+            },
         ],
     },
 
-    async execute(interaction: CommandInteraction, client: any) {
+    async execute(interaction: CommandInteraction, _client: any) {
         if (!interaction.isChatInputCommand()) return;
 
-        const searchTerm = interaction.options.getString('term', true);
+        const searchTerm = interaction.options.getString("term", true);
         // getMember can return APIInteractionGuildMember in DMs or other
         // weird contexts — we cast to GuildMember | null because we only
         // use it for the mention string, which both shapes support.
-        const targetMember = interaction.options.getMember('member') as GuildMember | null;
+        const targetMember = interaction.options.getMember(
+            "member",
+        ) as GuildMember | null;
 
         // deferReply ephemeral because the API call can take a moment and
         // we don't want the "thinking..." indicator sitting publicly. The
@@ -146,23 +158,24 @@ export default {
 
         // Build both branches of the reply: content (the optional ping)
         // and embed (the actual definition or not-found message).
-        let content = '';
+        let content = "";
         let replyEmbed: EmbedBuilder;
 
         if (termData) {
             // "gender" → "Gender", "sexuality" → "Sexuality". Cheap
             // title-case since we only have two possible types.
-            const categoryDisplay = termData.type.charAt(0).toUpperCase() + termData.type.slice(1);
+            const categoryDisplay =
+                termData.type.charAt(0).toUpperCase() + termData.type.slice(1);
 
             // Blurple (0x5865F2) for success — matches /help's colour and
             // signals "informational" rather than error.
             replyEmbed = new EmbedBuilder()
-                .setColor(0x5865F2)
+                .setColor(0x5865f2)
                 .setTitle(`🏳️‍🌈 Term: **${searchTerm}**`)
                 .setDescription(termData.content)
                 .addFields(
-                    { name: 'Category', value: categoryDisplay, inline: true },
-                    { name: 'Source', value: 'girlsnetwork.dev', inline: true }
+                    { name: "Category", value: categoryDisplay, inline: true },
+                    { name: "Source", value: "girlsnetwork.dev", inline: true },
                 )
                 .setFooter({ text: `Searched term: ${searchTerm}` });
 
@@ -176,10 +189,16 @@ export default {
             // because term omissions are a real form of feedback we want
             // to see — the dataset grows from community contributions.
             replyEmbed = new EmbedBuilder()
-                .setColor(0xED4245)
-                .setTitle('Term Not Found 🔎')
-                .setDescription(`Could not find a definition for **"${searchTerm}"** in the database. Missing information? Open an issue on our [github](https://github.com/Girls-Network/LGBT-API/issues)`)
-                .setFooter({ text: 'GayBot v2', iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' });
+                .setColor(0xed4245)
+                .setTitle("Term Not Found 🔎")
+                .setDescription(
+                    `Could not find a definition for **"${searchTerm}"** in the database. Missing information? Open an issue on our [github](https://github.com/Girls-Network/LGBT-API/issues)`,
+                )
+                .setFooter({
+                    text: "GayBot v2",
+                    iconURL:
+                        "https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png",
+                });
 
             if (targetMember) {
                 content = `${targetMember}, I couldn't find a definition for **${searchTerm}**.`;
@@ -188,7 +207,7 @@ export default {
 
         await interaction.editReply({
             content: content,
-            embeds: [replyEmbed]
+            embeds: [replyEmbed],
         });
     },
 };

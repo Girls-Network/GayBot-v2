@@ -21,8 +21,8 @@ import {
     readPkSystemFile,
     writePkSystemFile,
     ReactionData,
-} from './dataManager';
-import emojiConfigData from '../configs/emoji-config.json';
+} from "./dataManager";
+import emojiConfigData from "../configs/emoji-config.json";
 
 // Re-exported so callers don't have to know that the type lives in dataManager.
 // Same pattern as identityManager — this file is the public surface for
@@ -35,24 +35,24 @@ export type { ReactionData };
 // statically typed as `any` by default, so we cast through this interface
 // to get autocomplete elsewhere in the codebase.
 interface EmojiConfig {
-    emoji: string;      // the actual unicode/custom emoji to fire
-    title: string;      // human-readable name, used as the opt-out key
+    emoji: string; // the actual unicode/custom emoji to fire
+    title: string; // human-readable name, used as the opt-out key
     keywords: string[]; // trigger words scanned in messageCreate
 }
 
 const emojiConfig: EmojiConfig[] = emojiConfigData as EmojiConfig[];
 
 /** All known emoji titles, in config order. Used to "disable everything". */
-export const ALL_EMOJI_TITLES: string[] = emojiConfig.map(e => e.title);
+export const ALL_EMOJI_TITLES: string[] = emojiConfig.map((e) => e.title);
 
 /** Convert a title (e.g. "Lesbian Flag") to its emoji string. Returns null if not found. */
 export function titleToEmoji(title: string): string | null {
-    return emojiConfig.find(e => e.title === title)?.emoji ?? null;
+    return emojiConfig.find((e) => e.title === title)?.emoji ?? null;
 }
 
 /** Convert an emoji string to its title. Returns null if not found. */
 export function emojiToTitle(emoji: string): string | null {
-    return emojiConfig.find(e => e.emoji === emoji)?.title ?? null;
+    return emojiConfig.find((e) => e.emoji === emoji)?.title ?? null;
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────
@@ -76,7 +76,10 @@ export function getUserReactionPrefs(userId: string): ReactionData {
 // Whole-prefs replace. We read-merge-write the user file because the
 // `reactions` slot lives alongside `identity`, `disabled_commands`, etc. —
 // dropping those would be a really mean bug.
-export function setUserReactionPrefs(userId: string, prefs: ReactionData): ReactionData {
+export function setUserReactionPrefs(
+    userId: string,
+    prefs: ReactionData,
+): ReactionData {
     const file = readUserFile(userId);
     writeUserFile(userId, { ...file, reactions: prefs });
     return prefs;
@@ -84,7 +87,9 @@ export function setUserReactionPrefs(userId: string, prefs: ReactionData): React
 
 /** Disable every known reaction for a user. Spreads ALL_EMOJI_TITLES into a fresh array. */
 export function disableAllUserReactions(userId: string): ReactionData {
-    return setUserReactionPrefs(userId, { disabled_emojis: [...ALL_EMOJI_TITLES] });
+    return setUserReactionPrefs(userId, {
+        disabled_emojis: [...ALL_EMOJI_TITLES],
+    });
 }
 
 /** Re-enable everything by emptying the disabled list. */
@@ -93,18 +98,28 @@ export function enableAllUserReactions(userId: string): ReactionData {
 }
 
 /** Add titles to a user's disabled list. Set-dedupes so re-disabling a title is a no-op. */
-export function disableUserEmojis(userId: string, titles: string[]): ReactionData {
+export function disableUserEmojis(
+    userId: string,
+    titles: string[],
+): ReactionData {
     const prefs = getUserReactionPrefs(userId);
     return setUserReactionPrefs(userId, {
-        disabled_emojis: Array.from(new Set([...prefs.disabled_emojis, ...titles])),
+        disabled_emojis: Array.from(
+            new Set([...prefs.disabled_emojis, ...titles]),
+        ),
     });
 }
 
 /** Remove titles from a user's disabled list. Filter-out is fine here since the list is small. */
-export function enableUserEmojis(userId: string, titles: string[]): ReactionData {
+export function enableUserEmojis(
+    userId: string,
+    titles: string[],
+): ReactionData {
     const prefs = getUserReactionPrefs(userId);
     return setUserReactionPrefs(userId, {
-        disabled_emojis: prefs.disabled_emojis.filter(t => !titles.includes(t)),
+        disabled_emojis: prefs.disabled_emojis.filter(
+            (t) => !titles.includes(t),
+        ),
     });
 }
 
@@ -118,7 +133,10 @@ export function getGuildReactionPrefs(guildId: string): ReactionData {
     return readGuildFile(guildId).reactions ?? { ...DEFAULT_REACTIONS };
 }
 
-export function setGuildReactionPrefs(guildId: string, prefs: ReactionData): ReactionData {
+export function setGuildReactionPrefs(
+    guildId: string,
+    prefs: ReactionData,
+): ReactionData {
     const file = readGuildFile(guildId);
     writeGuildFile(guildId, { ...file, reactions: prefs });
     return prefs;
@@ -126,7 +144,9 @@ export function setGuildReactionPrefs(guildId: string, prefs: ReactionData): Rea
 
 /** Disable all reactions in a guild. Useful for "this server doesn't do reactions, period". */
 export function disableAllGuildReactions(guildId: string): ReactionData {
-    return setGuildReactionPrefs(guildId, { disabled_emojis: [...ALL_EMOJI_TITLES] });
+    return setGuildReactionPrefs(guildId, {
+        disabled_emojis: [...ALL_EMOJI_TITLES],
+    });
 }
 
 /** Enable all reactions in a guild — clears the disabled list, doesn't override user prefs. */
@@ -135,18 +155,28 @@ export function enableAllGuildReactions(guildId: string): ReactionData {
 }
 
 /** Add titles to a guild's disabled list. Same set-dedup pattern as the user version. */
-export function disableGuildEmojis(guildId: string, titles: string[]): ReactionData {
+export function disableGuildEmojis(
+    guildId: string,
+    titles: string[],
+): ReactionData {
     const prefs = getGuildReactionPrefs(guildId);
     return setGuildReactionPrefs(guildId, {
-        disabled_emojis: Array.from(new Set([...prefs.disabled_emojis, ...titles])),
+        disabled_emojis: Array.from(
+            new Set([...prefs.disabled_emojis, ...titles]),
+        ),
     });
 }
 
 /** Remove titles from a guild's disabled list. */
-export function enableGuildEmojis(guildId: string, titles: string[]): ReactionData {
+export function enableGuildEmojis(
+    guildId: string,
+    titles: string[],
+): ReactionData {
     const prefs = getGuildReactionPrefs(guildId);
     return setGuildReactionPrefs(guildId, {
-        disabled_emojis: prefs.disabled_emojis.filter(t => !titles.includes(t)),
+        disabled_emojis: prefs.disabled_emojis.filter(
+            (t) => !titles.includes(t),
+        ),
     });
 }
 
@@ -164,7 +194,10 @@ export function getSystemReactionPrefs(systemId: string): ReactionData {
     return readPkSystemFile(systemId).reactions ?? { ...DEFAULT_REACTIONS };
 }
 
-export function setSystemReactionPrefs(systemId: string, prefs: ReactionData): ReactionData {
+export function setSystemReactionPrefs(
+    systemId: string,
+    prefs: ReactionData,
+): ReactionData {
     const file = readPkSystemFile(systemId);
     writePkSystemFile(systemId, { ...file, reactions: prefs });
     return prefs;
@@ -172,7 +205,9 @@ export function setSystemReactionPrefs(systemId: string, prefs: ReactionData): R
 
 /** Disable all reactions for an entire PK system. */
 export function disableAllSystemReactions(systemId: string): ReactionData {
-    return setSystemReactionPrefs(systemId, { disabled_emojis: [...ALL_EMOJI_TITLES] });
+    return setSystemReactionPrefs(systemId, {
+        disabled_emojis: [...ALL_EMOJI_TITLES],
+    });
 }
 
 /** Enable all reactions for an entire PK system. */
@@ -181,18 +216,28 @@ export function enableAllSystemReactions(systemId: string): ReactionData {
 }
 
 /** Add titles to a PK system's disabled list. */
-export function disableSystemEmojis(systemId: string, titles: string[]): ReactionData {
+export function disableSystemEmojis(
+    systemId: string,
+    titles: string[],
+): ReactionData {
     const prefs = getSystemReactionPrefs(systemId);
     return setSystemReactionPrefs(systemId, {
-        disabled_emojis: Array.from(new Set([...prefs.disabled_emojis, ...titles])),
+        disabled_emojis: Array.from(
+            new Set([...prefs.disabled_emojis, ...titles]),
+        ),
     });
 }
 
 /** Remove titles from a PK system's disabled list. */
-export function enableSystemEmojis(systemId: string, titles: string[]): ReactionData {
+export function enableSystemEmojis(
+    systemId: string,
+    titles: string[],
+): ReactionData {
     const prefs = getSystemReactionPrefs(systemId);
     return setSystemReactionPrefs(systemId, {
-        disabled_emojis: prefs.disabled_emojis.filter(t => !titles.includes(t)),
+        disabled_emojis: prefs.disabled_emojis.filter(
+            (t) => !titles.includes(t),
+        ),
     });
 }
 

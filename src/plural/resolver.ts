@@ -4,9 +4,9 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import { LruCache } from './cache';
-import { pluralFetch, PluralApiError } from './client';
-import type { PluralMessageResponse, ResolvedPluralSender } from './types';
+import { LruCache } from "./cache";
+import { pluralFetch, PluralApiError } from "./client";
+import type { PluralMessageResponse, ResolvedPluralSender } from "./types";
 
 /*
  * Figures out the real Discord user behind a /p/r proxy message, given a
@@ -33,7 +33,7 @@ const senderCache = new LruCache<string, ResolvedPluralSender | null>(10_000);
 const inFlight = new Map<string, Promise<ResolvedPluralSender | null>>();
 
 function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function cacheKey(channelId: string, messageId: string): string {
@@ -73,7 +73,6 @@ async function doResolve(
     const path = `/messages/${encodeURIComponent(channelId)}/${encodeURIComponent(messageId)}`;
     let attempt = 0;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         const res = await pluralFetch(path);
 
@@ -123,11 +122,12 @@ async function doResolve(
         // 429 → we're being rate-limited. Honour Retry-After if it's given,
         // otherwise a flat 1s is a safe guess.
         if (res.status === 429) {
-            const header = res.headers.get('Retry-After');
+            const header = res.headers.get("Retry-After");
             const retryAfterSec = header ? Number(header) : NaN;
-            const waitMs = Number.isFinite(retryAfterSec) && retryAfterSec > 0
-                ? retryAfterSec * 1000
-                : 1000;
+            const waitMs =
+                Number.isFinite(retryAfterSec) && retryAfterSec > 0
+                    ? retryAfterSec * 1000
+                    : 1000;
             await sleep(waitMs);
             continue;
         }
@@ -135,7 +135,7 @@ async function doResolve(
         // Anything else is unexpected. Pull the body in so we can actually
         // see what /p/r is yelling about (e.g. the auth header format error
         // that cost us half an evening).
-        let body = '';
+        let body = "";
         try {
             body = (await res.text()).slice(0, 500);
         } catch {
@@ -143,7 +143,7 @@ async function doResolve(
         }
         throw new PluralApiError(
             res.status,
-            `/plu/ral API returned ${res.status} for ${path}${body ? `: ${body}` : ''}`,
+            `/plu/ral API returned ${res.status} for ${path}${body ? `: ${body}` : ""}`,
         );
     }
 }

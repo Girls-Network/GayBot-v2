@@ -2,12 +2,45 @@
     {
         "emoji": "🏳️‍🌈",
         "title": "Gay Flag",
-        "keywords": ["gay", "homo", "gaii", "gae", "queer", "lgbt", "mlm", "men", "gaybot", "gayer", "gayy", "m4m", "<@1386796424720810234>"]
+        "keywords": [
+            "gay",
+            "homo",
+            "gaii",
+            "gae",
+            "queer",
+            "lgbt",
+            "mlm",
+            "men",
+            "gaybot",
+            "gayer",
+            "gayy",
+            "m4m",
+            "<@1386796424720810234>"
+        ]
     },
     {
         "emoji": "<:lesbian:1475961765824299241>",
         "title": "Lesbian Flag",
-        "keywords": ["lesb", "sesbian", "lesbian", "wlw", "lesbi", "women", "girls", "sapphic", "northampton", "lipstick", "femme", "butch", "lesbians", "lesbianism", "lesbiab", "w4w", "tiefling", "alphys"]
+        "keywords": [
+            "lesb",
+            "sesbian",
+            "lesbian",
+            "wlw",
+            "lesbi",
+            "women",
+            "girls",
+            "sapphic",
+            "northampton",
+            "lipstick",
+            "femme",
+            "butch",
+            "lesbians",
+            "lesbianism",
+            "lesbiab",
+            "w4w",
+            "tiefling",
+            "alphys"
+        ]
     },
     {
         "emoji": "<:lesBean:1475961756651229461>",
@@ -17,7 +50,21 @@
     {
         "emoji": "🏳️‍⚧️",
         "title": "Trans Flag",
-        "keywords": ["trans", "tranz", "transgender", "sans", "ftm", "mtf", "transfem", "transmasc", "transfemme", "transfeminine", "transmasculine", "t4t", "trains"]
+        "keywords": [
+            "trans",
+            "tranz",
+            "transgender",
+            "sans",
+            "ftm",
+            "mtf",
+            "transfem",
+            "transmasc",
+            "transfemme",
+            "transfeminine",
+            "transmasculine",
+            "t4t",
+            "trains"
+        ]
     },
     {
         "emoji": "<:bisexual:1475961720278356130>",
@@ -27,7 +74,15 @@
     {
         "emoji": "<:nonBinary:1475961794240708769>",
         "title": "Non-Binary Flag",
-        "keywords": ["nb", "enby", "non binary", "femby", "non-binary", "frisk", "link"]
+        "keywords": [
+            "nb",
+            "enby",
+            "non binary",
+            "femby",
+            "non-binary",
+            "frisk",
+            "link"
+        ]
     },
     {
         "emoji": "<:aromantic:1475961701865357332>",
@@ -57,22 +112,63 @@
     {
         "emoji": "<:lesCat:1475961774212649011>",
         "title": "UwU",
-        "keywords": ["uwu", "owo", ":3", ";3", "^w^", "qwp", "xd", ":>", "teehee"]
+        "keywords": [
+            "uwu",
+            "owo",
+            ":3",
+            ";3",
+            "^w^",
+            "qwp",
+            "xd",
+            ":>",
+            "teehee"
+        ]
     },
     {
         "emoji": "<:gotobed:1475961747104862348>",
         "title": "Tired",
-        "keywords": ["tired", "sleepy", "eepy", "sleep", "eep", "snooze", "knackered", "exhausted", "zzzz", "eeper", "shoo"]
+        "keywords": [
+            "tired",
+            "sleepy",
+            "eepy",
+            "sleep",
+            "eep",
+            "snooze",
+            "knackered",
+            "exhausted",
+            "zzzz",
+            "eeper",
+            "shoo"
+        ]
     },
     {
         "emoji": "<:mikuBwaaa:1475961783994024188>",
         "title": "Miku",
-        "keywords": ["miku", "hatsune", "baka", "vocaloid", "leek", "1db", "cure", "polkka"]
+        "keywords": [
+            "miku",
+            "hatsune",
+            "baka",
+            "vocaloid",
+            "leek",
+            "1db",
+            "cure",
+            "polkka"
+        ]
     },
     {
         "emoji": "<:tetoBwaaa:1475961829963595867>",
         "title": "Teto",
-        "keywords": ["teto", "katsane", "baka", "pear", "utau", "override", "tetoris", "tetopear", "pearto"]
+        "keywords": [
+            "teto",
+            "katsane",
+            "baka",
+            "pear",
+            "utau",
+            "override",
+            "tetoris",
+            "tetopear",
+            "pearto"
+        ]
     },
     {
         "emoji": "<:neruBlush:1486642655583670302>",
@@ -95,6 +191,3 @@
         "keywords": ["neck", "tall", "savanna", "spotted", "lylla"]
     }
 ]
-
-
-

@@ -19,7 +19,7 @@
 // shards is explicitly required by PK's API rules so they can attribute
 // traffic correctly. Don't randomise or vary it per-shard.
 
-const API_BASE = 'https://api.pluralkit.me/v2';
+const API_BASE = "https://api.pluralkit.me/v2";
 
 /**
  * The User-Agent string PK uses to identify us. Includes the repo URL so
@@ -27,7 +27,8 @@ const API_BASE = 'https://api.pluralkit.me/v2';
  * Shared across every shard — consistency here is a PK API requirement,
  * not just a nicety.
  */
-export const PK_USER_AGENT = 'GayBot (https://github.com/Girls-Network/gaybot-v2)';
+export const PK_USER_AGENT =
+    "GayBot (https://github.com/Girls-Network/gaybot-v2)";
 
 /**
  * Thin Error subclass so callers can distinguish "PK said no" from
@@ -36,9 +37,12 @@ export const PK_USER_AGENT = 'GayBot (https://github.com/Girls-Network/gaybot-v2
  * differently from other errors.
  */
 export class PkApiError extends Error {
-    constructor(public readonly status: number, message: string) {
+    constructor(
+        public readonly status: number,
+        message: string,
+    ) {
         super(message);
-        this.name = 'PkApiError';
+        this.name = "PkApiError";
     }
 }
 
@@ -50,10 +54,10 @@ export class PkApiError extends Error {
  */
 export async function pkFetch(path: string): Promise<Response> {
     return fetch(`${API_BASE}${path}`, {
-        method: 'GET',
+        method: "GET",
         headers: {
-            'User-Agent': PK_USER_AGENT,
-            Accept: 'application/json',
+            "User-Agent": PK_USER_AGENT,
+            Accept: "application/json",
         },
     });
 }

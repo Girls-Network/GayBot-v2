@@ -13,16 +13,16 @@
 // between rotations is well under the limit and keeps the asset wear
 // from being tediously fast-paced.
 
-import { Client } from 'discord.js';
-import * as fs from 'fs';
-import * as path from 'path';
-import { log, logError } from './logger';
-import chalk from 'chalk';
+import { Client } from "discord.js";
+import * as fs from "fs";
+import * as path from "path";
+import { log, logError } from "./logger";
+import chalk from "chalk";
 
 // __dirname is .../dist/utils in prod and .../src/utils in dev — both are
 // two levels deep from the project root, so ../../assets points at the
 // right place either way without any "are we ts-node?" detection.
-const ASSETS_DIR = path.join(__dirname, '../../assets');
+const ASSETS_DIR = path.join(__dirname, "../../assets");
 const ROTATE_INTERVAL_MS = 72 * 60 * 1000; // 72 minutes — see file-top note
 
 // Module-level state so startBannerRotater() is idempotent-ish: calling
@@ -36,8 +36,9 @@ let bannerFiles: string[] = [];
 // files are named 1.png, 2.png, ..., 20.png and a default lexical sort
 // would order them 1, 10, 11, ..., 2, 20, 3, which is not what we want.
 function loadBannerFiles(): void {
-    const files = fs.readdirSync(ASSETS_DIR)
-        .filter(f => f.endsWith('.png'))
+    const files = fs
+        .readdirSync(ASSETS_DIR)
+        .filter((f) => f.endsWith(".png"))
         .sort((a, b) => {
             // parseInt stops at the first non-digit, so "10.png" → 10.
             return parseInt(a) - parseInt(b);
@@ -46,11 +47,13 @@ function loadBannerFiles(): void {
     if (files.length === 0) {
         // This is fatal for the rotater specifically, but the bot should
         // keep running — startBannerRotater catches and logs.
-        throw new Error('No PNG files found in assets/');
+        throw new Error("No PNG files found in assets/");
     }
 
     bannerFiles = files;
-    log(chalk.cyanBright(`Banner rotater loaded ${bannerFiles.length} banners`));
+    log(
+        chalk.cyanBright(`Banner rotater loaded ${bannerFiles.length} banners`),
+    );
 }
 
 // Pushes the next banner up to Discord. We send the PNG inline as a
@@ -65,21 +68,25 @@ async function rotateBanner(client: Client): Promise<void> {
         // readFileSync is fine here — this runs once every 72 minutes
         // and the PNGs are small enough that the I/O is negligible.
         const imageData = fs.readFileSync(filePath);
-        const base64 = `data:image/png;base64,${imageData.toString('base64')}`;
+        const base64 = `data:image/png;base64,${imageData.toString("base64")}`;
 
         // Optional chain on client.user because in theory we could
         // run this before login resolves; in practice main.ts gates
         // this on the 'clientReady' event so it's always defined.
         await client.user?.setBanner(base64);
 
-        log(chalk.cyanBright(`Banner rotated to ${file} (${currentIndex + 1}/${bannerFiles.length})`));
+        log(
+            chalk.cyanBright(
+                `Banner rotated to ${file} (${currentIndex + 1}/${bannerFiles.length})`,
+            ),
+        );
         // Wrap around at the end of the list — no need to reload the
         // directory listing, banners don't get added at runtime.
         currentIndex = (currentIndex + 1) % bannerFiles.length;
     } catch (error) {
         // Don't throw — a failed rotation shouldn't kill the interval.
         // We just log and try again next tick.
-        logError(error, 'BannerRotater');
+        logError(error, "BannerRotater");
     }
 }
 
@@ -90,7 +97,7 @@ export function startBannerRotater(client: Client): void {
     } catch (error) {
         // Missing assets/ or empty directory — log and bow out. The
         // rest of the bot runs fine without banner rotation.
-        logError(error, 'BannerRotater');
+        logError(error, "BannerRotater");
         return;
     }
 

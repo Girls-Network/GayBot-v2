@@ -13,11 +13,11 @@
 // server wants a manager-level view — it aggregates status from all shards,
 // and the manager is the only place with visibility into all of them.
 
-import { ShardingManager } from 'discord.js';
-import * as path from 'path';
-import chalk from 'chalk';
-import { log, logError, logBoot, asciiArt } from './utils/logger';
-import { startStatusServer } from './utils/statusServer';
+import { ShardingManager } from "discord.js";
+import * as path from "path";
+import chalk from "chalk";
+import { log, logError, logBoot, asciiArt } from "./utils/logger";
+import { startStatusServer } from "./utils/statusServer";
 
 const TOKEN = process.env.GAYBOT_TOKEN;
 
@@ -27,7 +27,7 @@ const TOKEN = process.env.GAYBOT_TOKEN;
 // (not our logger) is deliberate — if this fires we haven't finished
 // booting enough to guarantee the logger works.
 if (!TOKEN) {
-    console.error(chalk.redBright('Missing GAYBOT_TOKEN environment variable'));
+    console.error(chalk.redBright("Missing GAYBOT_TOKEN environment variable"));
     process.exit(1);
 }
 
@@ -47,8 +47,8 @@ logBoot();
 // each shard, and those children don't inherit our ts-node hook. So in dev
 // we have to tell Node to preload ts-node/register in each shard as well,
 // otherwise they try to load main.ts as plain JS and explode.
-const isTsNode = __filename.endsWith('.ts');
-const botFile = path.join(__dirname, isTsNode ? 'main.ts' : 'main.js');
+const isTsNode = __filename.endsWith(".ts");
+const botFile = path.join(__dirname, isTsNode ? "main.ts" : "main.js");
 
 const manager = new ShardingManager(botFile, {
     token: TOKEN,
@@ -64,7 +64,7 @@ const manager = new ShardingManager(botFile, {
     respawn: true,
     // See the isTsNode note above — child processes need ts-node
     // preloaded in dev, otherwise they try to execute main.ts as JS.
-    execArgv: isTsNode ? ['-r', 'ts-node/register'] : undefined,
+    execArgv: isTsNode ? ["-r", "ts-node/register"] : undefined,
 });
 
 // ── Shard lifecycle logging ────────────────────────────────────────────────
@@ -74,25 +74,25 @@ const manager = new ShardingManager(botFile, {
 // importantly — which died or reconnected. Without this you just see a
 // silent window of nothing, then "something broke" from afar.
 
-manager.on('shardCreate', shard => {
+manager.on("shardCreate", (shard) => {
     log(chalk.cyanBright(`[ShardManager] Shard ${shard.id} launched`));
 
     // "Ready" is the big milestone — the shard has finished its guild
     // member chunking and is actually receiving events. Until this
     // fires, the shard can technically accept commands but may not
     // have up-to-date state.
-    shard.on('ready', () => {
+    shard.on("ready", () => {
         log(chalk.greenBright(`[Shard ${shard.id}] Ready`));
     });
 
     // Disconnect = transient websocket drop. Not necessarily bad; the
     // shard will usually reconnect on its own. Yellow because it's
     // worth noticing but not a five-alarm fire.
-    shard.on('disconnect', () => {
+    shard.on("disconnect", () => {
         log(chalk.yellowBright(`[Shard ${shard.id}] Disconnected`));
     });
 
-    shard.on('reconnecting', () => {
+    shard.on("reconnecting", () => {
         log(chalk.yellow(`[Shard ${shard.id}] Reconnecting...`));
     });
 
@@ -100,15 +100,15 @@ manager.on('shardCreate', shard => {
     // is usually a sign of an OOM or a serious bug. respawn: true above
     // means the manager will bring it back automatically, but we still
     // want a loud log entry so it doesn't slip past unnoticed.
-    shard.on('death', (proc) => {
-    const code = (proc as any).exitCode ?? 'unknown';
-    logError(
-        new Error(`Shard process exited with code ${code}`),
-        `Shard ${shard.id}`
-    );
-});
+    shard.on("death", (proc) => {
+        const code = (proc as any).exitCode ?? "unknown";
+        logError(
+            new Error(`Shard process exited with code ${code}`),
+            `Shard ${shard.id}`,
+        );
+    });
 
-    shard.on('error', err => {
+    shard.on("error", (err) => {
         logError(err, `Shard ${shard.id}`);
     });
 });
@@ -126,14 +126,17 @@ startStatusServer(manager);
 // give each shard to reach 'ready' before we consider the spawn failed —
 // 30s is comfortably more than a healthy startup but not so long that a
 // wedged shard holds up the whole boot forever.
-manager.spawn({ amount: 'auto', delay: 5500, timeout: 30_000 })
+manager
+    .spawn({ amount: "auto", delay: 5500, timeout: 30_000 })
     .then(() => {
-        log(chalk.greenBright('[ShardManager] All shards spawned successfully'));
+        log(
+            chalk.greenBright("[ShardManager] All shards spawned successfully"),
+        );
     })
-    .catch(err => {
+    .catch((err) => {
         // Fatal — if spawn() itself rejects, nothing is going to come up
         // on its own. Log and exit so the supervisor (systemd / pm2 /
         // whatever) can restart us with a clean slate.
-        logError(err, 'ShardManager spawn');
+        logError(err, "ShardManager spawn");
         process.exit(1);
     });

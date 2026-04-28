@@ -20,7 +20,7 @@ import {
     ApplicationCommandOptionType,
     PermissionFlagsBits,
     MessageFlags,
-} from 'discord.js';
+} from "discord.js";
 import {
     ALL_EMOJI_TITLES,
     titleToEmoji,
@@ -30,7 +30,7 @@ import {
     disableGuildEmojis,
     enableGuildEmojis,
     ReactionData,
-} from '../../utils/reactionPreferences';
+} from "../../utils/reactionPreferences";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -42,64 +42,82 @@ import {
 //
 // Both lists (enabled/disabled) get rendered inline, side-by-side, so the
 // admin doesn't have to scroll back and forth comparing counts.
-function buildStatusEmbed(prefs: ReactionData, guildName: string): EmbedBuilder {
-    const allDisabled  = prefs.disabled_emojis.length === ALL_EMOJI_TITLES.length;
+function buildStatusEmbed(
+    prefs: ReactionData,
+    guildName: string,
+): EmbedBuilder {
+    const allDisabled =
+        prefs.disabled_emojis.length === ALL_EMOJI_TITLES.length;
     const noneDisabled = prefs.disabled_emojis.length === 0;
 
     // Status banner at the top of the embed. Emoji circles rather than just
     // text so it's scannable in a dense channel.
     let statusLine: string;
-    if (allDisabled)       statusLine = '🔴 All reactions disabled';
-    else if (noneDisabled) statusLine = '🟢 All reactions enabled';
-    else                   statusLine = `🟡 Some reactions disabled (${prefs.disabled_emojis.length}/${ALL_EMOJI_TITLES.length})`;
+    if (allDisabled) statusLine = "🔴 All reactions disabled";
+    else if (noneDisabled) statusLine = "🟢 All reactions enabled";
+    else
+        statusLine = `🟡 Some reactions disabled (${prefs.disabled_emojis.length}/${ALL_EMOJI_TITLES.length})`;
 
     // Disabled list — show the emoji next to the title so it's recognisable
     // even if the title is something obscure. _None_ italic placeholder when
     // empty so the field doesn't render as a weird gap.
-    const disabledList = prefs.disabled_emojis.length > 0
-        ? prefs.disabled_emojis.map(t => `${titleToEmoji(t) ?? ''} ${t}`.trim()).join('\n')
-        : '_None_';
+    const disabledList =
+        prefs.disabled_emojis.length > 0
+            ? prefs.disabled_emojis
+                  .map((t) => `${titleToEmoji(t) ?? ""} ${t}`.trim())
+                  .join("\n")
+            : "_None_";
 
     // Enabled list = everything in the master config that isn't currently
     // disabled. Same format as the disabled list for visual symmetry.
-    const enabledList = ALL_EMOJI_TITLES
-        .filter(t => !prefs.disabled_emojis.includes(t))
-        .map(t => `${titleToEmoji(t) ?? ''} ${t}`.trim())
-        .join('\n') || '_None_';
+    const enabledList =
+        ALL_EMOJI_TITLES.filter((t) => !prefs.disabled_emojis.includes(t))
+            .map((t) => `${titleToEmoji(t) ?? ""} ${t}`.trim())
+            .join("\n") || "_None_";
 
-    return new EmbedBuilder()
-        .setTitle(`🏠 Server Reaction Settings — ${guildName}`)
-        .setDescription(statusLine)
-        .addFields(
-            { name: '✅ Enabled', value: enabledList, inline: true },
-            { name: '❌ Disabled', value: disabledList, inline: true },
-        )
-        // Discord-native traffic-light colours: red for danger/blocked,
-        // green for go, yellow for mixed.
-        .setColor(allDisabled ? 0xED4245 : noneDisabled ? 0x57F287 : 0xFEE75C)
-        .setFooter({ text: 'GayBot v2', iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' });
+    return (
+        new EmbedBuilder()
+            .setTitle(`🏠 Server Reaction Settings — ${guildName}`)
+            .setDescription(statusLine)
+            .addFields(
+                { name: "✅ Enabled", value: enabledList, inline: true },
+                { name: "❌ Disabled", value: disabledList, inline: true },
+            )
+            // Discord-native traffic-light colours: red for danger/blocked,
+            // green for go, yellow for mixed.
+            .setColor(
+                allDisabled ? 0xed4245 : noneDisabled ? 0x57f287 : 0xfee75c,
+            )
+            .setFooter({
+                text: "GayBot v2",
+                iconURL:
+                    "https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png",
+            })
+    );
 }
 
 // ─── Command ──────────────────────────────────────────────────────────────────
 
 export default {
     data: {
-        name: 'admin',
-        description: 'Server administration settings.',
+        name: "admin",
+        description: "Server administration settings.",
         options: [
             {
                 type: ApplicationCommandOptionType.SubcommandGroup,
-                name: 'reactions',
-                description: 'Manage which reactions the bot adds in this server.',
+                name: "reactions",
+                description:
+                    "Manage which reactions the bot adds in this server.",
                 options: [
                     {
                         type: ApplicationCommandOptionType.Subcommand,
-                        name: 'disable',
-                        description: 'Disable a reaction or all reactions server-wide.',
+                        name: "disable",
+                        description:
+                            "Disable a reaction or all reactions server-wide.",
                         options: [
                             {
                                 type: ApplicationCommandOptionType.String,
-                                name: 'reaction',
+                                name: "reaction",
                                 description: 'Reaction to disable, or "All".',
                                 required: true,
                                 autocomplete: true,
@@ -108,12 +126,13 @@ export default {
                     },
                     {
                         type: ApplicationCommandOptionType.Subcommand,
-                        name: 'enable',
-                        description: 'Re-enable a reaction or all reactions server-wide.',
+                        name: "enable",
+                        description:
+                            "Re-enable a reaction or all reactions server-wide.",
                         options: [
                             {
                                 type: ApplicationCommandOptionType.String,
-                                name: 'reaction',
+                                name: "reaction",
                                 description: 'Reaction to re-enable, or "All".',
                                 required: true,
                                 autocomplete: true,
@@ -122,8 +141,9 @@ export default {
                     },
                     {
                         type: ApplicationCommandOptionType.Subcommand,
-                        name: 'status',
-                        description: 'View the current server reaction settings.',
+                        name: "status",
+                        description:
+                            "View the current server reaction settings.",
                     },
                 ],
             },
@@ -140,33 +160,41 @@ export default {
         // a stray DM context shouldn't crash the autocomplete.
         if (!interaction.guildId) return await interaction.respond([]);
 
-        const sub     = interaction.options.getSubcommand();
+        const sub = interaction.options.getSubcommand();
         const focused = interaction.options.getFocused().toLowerCase();
-        const prefs   = getGuildReactionPrefs(interaction.guildId);
+        const prefs = getGuildReactionPrefs(interaction.guildId);
 
         let candidates: string[] = [];
 
-        if (sub === 'disable') {
+        if (sub === "disable") {
             // Show only currently-enabled emojis as disable candidates.
             // "All" only appears if there's at least one to disable.
-            const notYet = ALL_EMOJI_TITLES.filter(t => !prefs.disabled_emojis.includes(t));
-            candidates = notYet.length > 0 ? ['All', ...notYet] : [];
-        } else if (sub === 'enable') {
+            const notYet = ALL_EMOJI_TITLES.filter(
+                (t) => !prefs.disabled_emojis.includes(t),
+            );
+            candidates = notYet.length > 0 ? ["All", ...notYet] : [];
+        } else if (sub === "enable") {
             // Mirror image: only currently-disabled emojis.
-            candidates = prefs.disabled_emojis.length > 0 ? ['All', ...prefs.disabled_emojis] : [];
+            candidates =
+                prefs.disabled_emojis.length > 0
+                    ? ["All", ...prefs.disabled_emojis]
+                    : [];
         }
 
         // Discord caps autocomplete results at 25. Substring match is fine
         // for our list size — fewer than 30 emojis total.
         await interaction.respond(
             candidates
-                .filter(c => c.toLowerCase().includes(focused))
+                .filter((c) => c.toLowerCase().includes(focused))
                 .slice(0, 25)
-                .map(c => ({ name: c, value: c }))
+                .map((c) => ({ name: c, value: c })),
         );
     },
 
-    async execute(interaction: CommandInteraction, _client: any): Promise<void> {
+    async execute(
+        interaction: CommandInteraction,
+        _client: any,
+    ): Promise<void> {
         if (!interaction.isChatInputCommand()) return;
 
         // Guild-only sanity check. Discord's slash command config also gates
@@ -174,7 +202,8 @@ export default {
         // bail with a friendly error rather than crashing on guildId access.
         if (!interaction.inGuild()) {
             await interaction.reply({
-                content: '❌ Server settings can only be managed inside a server.',
+                content:
+                    "❌ Server settings can only be managed inside a server.",
                 flags: MessageFlags.Ephemeral,
             });
             return;
@@ -182,50 +211,62 @@ export default {
 
         // Permission check — try cache first, fall back to a fetch. Cache
         // miss is common for users who haven't been seen since restart.
-        const member = interaction.guild?.members.cache.get(interaction.user.id)
-            ?? await interaction.guild?.members.fetch(interaction.user.id);
+        const member =
+            interaction.guild?.members.cache.get(interaction.user.id) ??
+            (await interaction.guild?.members.fetch(interaction.user.id));
 
         // ManageGuild is the canonical "this person configures the server"
         // permission. We don't accept mod-tier perms (KickMembers, etc)
         // because reaction prefs are a server-wide config concern.
         if (!member?.permissions.has(PermissionFlagsBits.ManageGuild)) {
             await interaction.reply({
-                content: '❌ You need the **Manage Server** permission to change server settings.',
+                content:
+                    "❌ You need the **Manage Server** permission to change server settings.",
                 flags: MessageFlags.Ephemeral,
             });
             return;
         }
 
         const guildId = interaction.guildId!;
-        const sub     = interaction.options.getSubcommand();
+        const sub = interaction.options.getSubcommand();
 
         // ── status ────────────────────────────────────────────────────────
         // Read-only view. No state mutation, just hand back the embed.
-        if (sub === 'status') {
+        if (sub === "status") {
             const prefs = getGuildReactionPrefs(guildId);
-            const embed = buildStatusEmbed(prefs, interaction.guild?.name ?? guildId);
-            await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+            const embed = buildStatusEmbed(
+                prefs,
+                interaction.guild?.name ?? guildId,
+            );
+            await interaction.reply({
+                embeds: [embed],
+                flags: MessageFlags.Ephemeral,
+            });
             return;
         }
 
         // Both `disable` and `enable` take the same `reaction` string arg,
         // so we extract it once before the branch.
-        const reaction = interaction.options.getString('reaction', true);
+        const reaction = interaction.options.getString("reaction", true);
 
         // ── disable ───────────────────────────────────────────────────────
         // "All" is a pseudo-value from autocomplete that means
         // "disable every emoji in the master list". Anything else is a
         // single-title disable.
-        if (sub === 'disable') {
-            reaction === 'All'
-                ? disableAllGuildReactions(guildId)
-                : disableGuildEmojis(guildId, [reaction]);
+        if (sub === "disable") {
+            if (reaction === "All") {
+                disableAllGuildReactions(guildId);
+            } else {
+                disableGuildEmojis(guildId, [reaction]);
+            }
 
             // Reply text leans on the same emoji+title format as the embed
             // for visual continuity. .trim() catches the leading space when
             // emoji is empty (which happens for "All" or unknown titles).
-            const label = reaction === 'All' ? 'All reactions' : `**${reaction}**`;
-            const emoji = reaction === 'All' ? '' : (titleToEmoji(reaction) ?? '');
+            const label =
+                reaction === "All" ? "All reactions" : `**${reaction}**`;
+            const emoji =
+                reaction === "All" ? "" : (titleToEmoji(reaction) ?? "");
             await interaction.reply({
                 content: `✅ ${emoji} ${label} disabled server-wide.`.trim(),
                 flags: MessageFlags.Ephemeral,
@@ -236,13 +277,17 @@ export default {
         // ── enable ────────────────────────────────────────────────────────
         // Mirror of disable. The early-return chain above means we don't
         // need an else here — if we got past disable, we're in enable.
-        if (sub === 'enable') {
-            reaction === 'All'
-                ? enableAllGuildReactions(guildId)
-                : enableGuildEmojis(guildId, [reaction]);
+        if (sub === "enable") {
+            if (reaction === "All") {
+                enableAllGuildReactions(guildId);
+            } else {
+                enableGuildEmojis(guildId, [reaction]);
+            }
 
-            const label = reaction === 'All' ? 'All reactions' : `**${reaction}**`;
-            const emoji = reaction === 'All' ? '' : (titleToEmoji(reaction) ?? '');
+            const label =
+                reaction === "All" ? "All reactions" : `**${reaction}**`;
+            const emoji =
+                reaction === "All" ? "" : (titleToEmoji(reaction) ?? "");
             await interaction.reply({
                 content: `✅ ${emoji} ${label} re-enabled server-wide.`.trim(),
                 flags: MessageFlags.Ephemeral,

@@ -17,17 +17,21 @@
  *     plural.gg/api. That's a one-line change here when it happens.
  */
 
-const API_BASE = 'https://api.plural.gg';
+const API_BASE = "https://api.plural.gg";
 
 // Same UA we use for PK. Not strictly required by /p/r (ant said the token
 // identifies us just fine), but keeping one UA across every outbound call
 // makes it easier for third-party devs to grep their logs for us.
-export const PLURAL_USER_AGENT = 'GayBot (https://github.com/Girls-Network/gaybot-v2)';
+export const PLURAL_USER_AGENT =
+    "GayBot (https://github.com/Girls-Network/gaybot-v2)";
 
 export class PluralApiError extends Error {
-    constructor(public readonly status: number, message: string) {
+    constructor(
+        public readonly status: number,
+        message: string,
+    ) {
         super(message);
-        this.name = 'PluralApiError';
+        this.name = "PluralApiError";
     }
 }
 
@@ -48,8 +52,8 @@ export function hasPluralToken(): boolean {
 
 export async function pluralFetch(path: string): Promise<Response> {
     const headers: Record<string, string> = {
-        'User-Agent': PLURAL_USER_AGENT,
-        Accept: 'application/json',
+        "User-Agent": PLURAL_USER_AGENT,
+        Accept: "application/json",
     };
 
     if (TOKEN) {
@@ -61,7 +65,7 @@ export async function pluralFetch(path: string): Promise<Response> {
     }
 
     return fetch(`${API_BASE}${path}`, {
-        method: 'GET',
+        method: "GET",
         headers,
     });
 }

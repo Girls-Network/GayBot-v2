@@ -4,12 +4,11 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import chalk from 'chalk';
-import { VoiceStateEditOptions } from 'discord.js';
+import * as fs from "fs";
+import * as path from "path";
+import chalk from "chalk";
 
-const LOG_DIR = path.join(process.cwd(), '.logs');
+const LOG_DIR = path.join(process.cwd(), ".logs");
 
 // Make sure .logs/ exists up-front — appendFileSync will throw otherwise
 // and we'd lose the first error we tried to record.
@@ -24,19 +23,21 @@ if (!fs.existsSync(LOG_DIR)) {
 // shouldn't stop the bot booting, so we just fall through to "unknown".
 function getBotVersion(): string {
     const candidates = [
-        path.join(__dirname, '..', '..', 'package.json'),        // dist/utils/logger.js
-        path.join(__dirname, '..', '..', '..', 'package.json'),  // src/utils/logger.ts (ts-node)
+        path.join(__dirname, "..", "..", "package.json"), // dist/utils/logger.js
+        path.join(__dirname, "..", "..", "..", "package.json"), // src/utils/logger.ts (ts-node)
     ];
     for (const p of candidates) {
         try {
             if (!fs.existsSync(p)) continue;
-            const pkg = JSON.parse(fs.readFileSync(p, 'utf-8')) as { version?: string };
-            if (typeof pkg.version === 'string') return pkg.version;
+            const pkg = JSON.parse(fs.readFileSync(p, "utf-8")) as {
+                version?: string;
+            };
+            if (typeof pkg.version === "string") return pkg.version;
         } catch {
             // malformed JSON here doesn't matter, try the next path
         }
     }
-    return 'unknown';
+    return "unknown";
 }
 
 function getTimestamp(): string {
@@ -53,15 +54,15 @@ export function logError(error: Error | unknown, context?: string): void {
     const timestamp = getTimestamp();
     const formatted = chalk.grey(`[${timestamp}]`);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const stack = error instanceof Error ? error.stack : '';
+    const stack = error instanceof Error ? error.stack : "";
 
-    const logContent = `${formatted} ERROR${context ? ` (${context})` : ''}: ${errorMessage}\n${stack}\n\n`;
+    const logContent = `${formatted} ERROR${context ? ` (${context})` : ""}: ${errorMessage}\n${stack}\n\n`;
 
     // One file per day keeps logs grep-able without rotation tooling.
-    const filename = `error-${new Date().toISOString().split('T')[0]}.log`;
+    const filename = `error-${new Date().toISOString().split("T")[0]}.log`;
     fs.appendFileSync(path.join(LOG_DIR, filename), logContent);
 
-    console.error(chalk.redBright(`There was an error, see: ${filename}`))
+    console.error(chalk.redBright(`There was an error, see: ${filename}`));
 }
 
 export function asciiArt(): void {
@@ -81,27 +82,27 @@ export function asciiArt(): void {
         "  `'---'   `--'  `\"  '..'                               `'-'                        ( _.-'                     ",
     ];
 
-    lines.forEach(line => console.log(chalk.greenBright(line)));
+    lines.forEach((line) => console.log(chalk.greenBright(line)));
 }
 
 export function logBoot(): void {
-    const authors = 'Aria Rees & Clove Nytrix Doughmination Twilight';
+    const authors = "Aria Rees & Clove Nytrix Doughmination Twilight";
     const version = `v${getBotVersion()}`;
 
     // Width the box has to be = longest string inside it + 2 spaces of
     // padding on each side. Everything else is centred inside that width.
     const innerWidth = Math.max(authors.length, version.length) + 4;
-    const border = '═'.repeat(innerWidth);
+    const border = "═".repeat(innerWidth);
 
     const center = (s: string): string => {
         const total = innerWidth - s.length;
-        const left  = Math.floor(total / 2);
+        const left = Math.floor(total / 2);
         const right = total - left;
-        return ' '.repeat(left) + s + ' '.repeat(right);
+        return " ".repeat(left) + s + " ".repeat(right);
     };
 
     console.log(chalk.magentaBright(`\n╔${border}╗`));
     console.log(chalk.magentaBright(`║${center(authors)}║`));
     console.log(chalk.magentaBright(`║${center(version)}║`));
     console.log(chalk.magentaBright(`╚${border}╝\n`));
-} 
+}

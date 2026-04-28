@@ -7,32 +7,38 @@
     "keywords": [
         "discord"
     ],
-    "homepage": "https://github.com/Girls-Network/GayBot#readme",
+    "homepage": "https://github.com/Girls-Network/GayBot-v2#readme",
     "bugs": {
-        "url": "https://github.com/Girls-Network/GayBot/issues"
+        "url": "https://github.com/Girls-Network/GayBot-v2/issues"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Girls-Network/GayBot.git"
+        "url": "git+https://github.com/Girls-Network/GayBot-v2.git"
     },
     "license": "SEE LICENCE IN LICENCE",
     "author": "Aria Rees & Clove Nytrix Doughmination Twilight",
     "scripts": {
-        "test": "npm run build && node dist/shard.js",
         "build": "tsc",
         "start": "ts-node src/shard.ts",
-        "dev": "nodemon --watch src --ext ts --exec \"npm run start\""
+        "dev": "nodemon --watch src --ext ts --exec \"npm run start\"",
+        "lint": "eslint \"src/**/*.ts\" \"*.{js,cjs,mjs}\" --fix",
+        "format": "prettier --write \"**/*.{ts,js,mjs,cjs,json,md}\"",
+        "prettylint": "npm run lint && npm run format",
+        "test": "tsc --noEmit"
     },
     "devDependencies": {
         "@types/node": "^25.0.3",
         "ts-node": "^10.9.2",
-        "typescript": "^6.0.2"
+        "typescript": "^6.0.2",
+        "nodemon": "^3.1.11",
+        "prettier": "^3.8.3",
+        "eslint": "^10.2.1",
+        "typescript-eslint": "^8.20.0"
     },
     "dependencies": {
         "@dotenvx/dotenvx": "^1.51.4",
         "chalk": "^5.6.2",
         "discord.js": "^14.25.1",
-        "node-fetch": "^3.3.2",
-        "nodemon": "^3.1.11"
+        "node-fetch": "^3.3.2"
     }
 }

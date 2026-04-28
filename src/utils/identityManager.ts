@@ -11,7 +11,12 @@
 //
 // Used by /identity set / get / me / clear (src/commands/identity.ts).
 
-import { readUserFile, writeUserFile, deleteUserFile, IdentityData } from './dataManager';
+import {
+    readUserFile,
+    writeUserFile,
+    deleteUserFile,
+    IdentityData,
+} from "./dataManager";
 
 // IdentityData itself lives in dataManager (alongside the other slot
 // types). Re-exported here so existing imports of `IdentityData` from
@@ -31,12 +36,12 @@ export function getIdentity(userId: string): IdentityData | null {
 // the change happened.
 export function setIdentity(
     userId: string,
-    fields: Partial<Omit<IdentityData, 'updated_at'>>
+    fields: Partial<Omit<IdentityData, "updated_at">>,
 ): IdentityData {
     const file = readUserFile(userId);
     // First-time setters won't have an existing identity. The empty
     // updated_at gets overwritten below, so it's just a placeholder.
-    const existing = file.identity ?? { updated_at: '' };
+    const existing = file.identity ?? { updated_at: "" };
 
     const updated: IdentityData = {
         ...existing,

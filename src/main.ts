@@ -4,15 +4,20 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import { Client, GatewayIntentBits, Collection, ActivityType } from 'discord.js';
-import * as fs from 'fs';
-import * as path from 'path';
-import { loadCommands, deployCommands } from './handlers/commandHandler';
-import { processReactionQueue, ReactionQueueEntry } from './utils/reactionSystem';
-import { logBoot, asciiArt, log, logError } from './utils/logger';
-import { startBannerRotater } from './utils/bannerRotator';
-import chalk from 'chalk';
-import { ExtendedClient } from './utils/ExtendedClient';
+import {
+    Client,
+    GatewayIntentBits,
+    Collection,
+    ActivityType,
+} from "discord.js";
+import * as fs from "fs";
+import * as path from "path";
+import { loadCommands, deployCommands } from "./handlers/commandHandler";
+import { processReactionQueue } from "./utils/reactionSystem";
+import { logBoot, asciiArt, log } from "./utils/logger";
+import { startBannerRotater } from "./utils/bannerRotator";
+import chalk from "chalk";
+import { ExtendedClient } from "./utils/ExtendedClient";
 
 // Minimal intent set: we only need to see guild messages and their content
 // to do the reaction matching. If we ever need DMs or member events, revisit.
@@ -35,11 +40,15 @@ client.toggleableCommands = [];
 // exports { name, execute, once? } — the once flag is used for one-shot
 // hooks like 'clientReady'.
 async function loadEvents() {
-    const eventsPath = path.join(__dirname, 'events');
-    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
+    const eventsPath = path.join(__dirname, "events");
+    const eventFiles = fs
+        .readdirSync(eventsPath)
+        .filter((file) => file.endsWith(".js") || file.endsWith(".ts"));
 
     for (const file of eventFiles) {
         const filePath = path.join(eventsPath, file);
+        // Dynamic require is intentional: we're walking disk to discover event modules.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const event = require(filePath).default;
 
         if (event && event.name && event.execute) {
@@ -51,13 +60,17 @@ async function loadEvents() {
         }
     }
 
-    log(chalk.cyanBright('Loading events'));
+    log(chalk.cyanBright("Loading events"));
 }
 
-client.once('clientReady', () => {
+client.once("clientReady", () => {
     const shardId = client.shard?.ids[0] ?? 0;
-    log(chalk.greenBright(`[Shard ${shardId}] Logged in as ${client.user?.tag}`));
-    client.user?.setActivity('Gayness', { type: ActivityType.Watching });
+    log(
+        chalk.greenBright(
+            `[Shard ${shardId}] Logged in as ${client.user?.tag}`,
+        ),
+    );
+    client.user?.setActivity("Gayness", { type: ActivityType.Watching });
 
     // Banners are a bot-wide thing, not per-shard. Running the rotater on
     // every shard would just hammer Discord with identical PATCH calls.
@@ -74,7 +87,9 @@ setInterval(() => processReactionQueue(client.reactionQueue), 1000);
 async function start() {
     // Pretty banner + boot log only once, not five times over. If we're
     // unsharded SHARD_ID is unset, which we also treat as "go ahead".
-    const shardId = process.env.SHARD_ID ? parseInt(process.env.SHARD_ID) : null;
+    const shardId = process.env.SHARD_ID
+        ? parseInt(process.env.SHARD_ID)
+        : null;
     if (shardId === null || shardId === 0) {
         asciiArt();
         logBoot();

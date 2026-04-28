@@ -1,10 +1,13 @@
 # 🏳️‍⚧️GayBot🏳️‍🌈
+
 > by Aria Rees & Clove Nytrix Doughmination Twilight
 
 ### Installation
+
 The easiest and fastest way to install the bot is by using the [official Discord install link](https://discord.com/oauth2/authorize?client_id=1475380726643032064)
 
 ### Tech Stack
+
 <div align="center">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=fff" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Discord.js-5865F2?logo=discord&logoColor=white" alt="Discord.js" />
@@ -13,16 +16,21 @@ The easiest and fastest way to install the bot is by using the [official Discord
 </div>
 
 ### Contributors
+
 <a href="https://github.com/Girls-Network/GayBot-v2/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=Girls-Network/GayBot-v2" />
 </a>
 
 ## 📜 Important Documents
+
 ### Licence
+
 Protected by the MIT Licence
+
 > See [LICENCE](./LICENCE) for details.
 
 ### Security
+
 Any security vulnerabilities, please refer to the [Security Guidelines](./SECURITY.md)
 
 ### Contributing
@@ -30,6 +38,7 @@ Any security vulnerabilities, please refer to the [Security Guidelines](./SECURI
 By contributing to our repository, you agree to adhere the [Contributing Guidelines](./CONTRIBUTING.md) and the [Code of Conduct](./CODE_OF_CONDUCT.md)
 
 ### Credits
+
 This project was originally made by MeltyMooncakes, and we still credit her as the original author, even while we now own this ourselves.
 
 Also credits to ThatGirl_Photographer for her part in some of the old bot, which some of has been put into the new bot

@@ -17,16 +17,16 @@
 // matching stays synchronous and opt-out/rate-limit logic doesn't block
 // the event handler.
 
-import { Message, PartialMessage } from 'discord.js';
-import emojiConfigData from '../configs/emoji-config.json';
-import { isReactionAllowed } from './reactionPreferences';
-import chalk from 'chalk';
+import { Message, PartialMessage } from "discord.js";
+import emojiConfigData from "../configs/emoji-config.json";
+import { isReactionAllowed } from "./reactionPreferences";
+import chalk from "chalk";
 
 // Shape of one entry in configs/emoji-config.json. JSON imports land as
 // `any`, so we cast through this interface for autocomplete downstream.
 interface EmojiConfig {
-    emoji: string;      // the emoji string to react with
-    title: string;      // human-readable name — the opt-out key
+    emoji: string; // the emoji string to react with
+    title: string; // human-readable name — the opt-out key
     keywords: string[]; // trigger words/phrases to match against message text
 }
 
@@ -73,11 +73,13 @@ export class KeywordChecker {
     }
 
     /** Returns matched { emoji, title } pairs for a given message string. */
-    public getMatchingEmojis(messageContent: string): { emoji: string; title: string }[] {
+    public getMatchingEmojis(
+        messageContent: string,
+    ): { emoji: string; title: string }[] {
         // Defensive null/type check — PartialMessage objects can have
         // null content, and we don't want to crash if Discord ever sends
         // us something unexpected.
-        if (!messageContent || typeof messageContent !== 'string') {
+        if (!messageContent || typeof messageContent !== "string") {
             return [];
         }
 
@@ -87,28 +89,34 @@ export class KeywordChecker {
         // message even if multiple keywords matched it.
         const found = new Map<string, string>(); // emoji → title, de-dupes by emoji
 
-        this.emojiMap.forEach(item => {
+        this.emojiMap.forEach((item) => {
             // .some() short-circuits on the first matching keyword — no point
             // checking the rest once we know this emoji fires.
-            const matchFound = item.keywords.some(keyword => {
+            const matchFound = item.keywords.some((keyword) => {
                 const lowerKeyword = keyword.toLowerCase();
 
                 // Literal-match for Discord mentions like <@123>. Word-boundary
                 // regex would mangle these because of the angle brackets,
                 // which aren't "word characters" and mess up \b anchors.
                 // Plain substring check is correct and simpler for mentions.
-                if (lowerKeyword.startsWith('<@') && lowerKeyword.endsWith('>')) {
+                if (
+                    lowerKeyword.startsWith("<@") &&
+                    lowerKeyword.endsWith(">")
+                ) {
                     return lowerMessage.includes(lowerKeyword);
                 }
 
                 // Word-boundary matching for everything else. The escape
                 // regex here neutralises regex metacharacters so a keyword
                 // like "c++" matches literally rather than blowing up.
-                const escapedKeyword = lowerKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const escapedKeyword = lowerKeyword.replace(
+                    /[.*+?^${}()|[\]\\]/g,
+                    "\\$&",
+                );
                 // Allow plural forms to match too — "lesbian" should fire
                 // on "lesbians", "kiss" on "kisses". Not fancy English
                 // pluralisation (no "y→ies"), but catches the common case.
-                const pluralization = '(s|es)?';
+                const pluralization = "(s|es)?";
 
                 // We swap \b for a whitespace lookahead/behind when the
                 // keyword starts or ends with a non-word char — otherwise
@@ -118,10 +126,12 @@ export class KeywordChecker {
                 const startsWithWordChar = /^\w/.test(lowerKeyword);
                 const endsWithWordChar = /\w$/.test(lowerKeyword);
 
-                const prefix = startsWithWordChar ? '\\b' : '(?<=\\s|^)';
-                const suffix = endsWithWordChar ? '\\b' : '(?=\\s|$)';
+                const prefix = startsWithWordChar ? "\\b" : "(?<=\\s|^)";
+                const suffix = endsWithWordChar ? "\\b" : "(?=\\s|$)";
 
-                const regex = new RegExp(`${prefix}${escapedKeyword}${pluralization}${suffix}`);
+                const regex = new RegExp(
+                    `${prefix}${escapedKeyword}${pluralization}${suffix}`,
+                );
                 return regex.test(lowerMessage);
             });
 
@@ -133,7 +143,10 @@ export class KeywordChecker {
             }
         });
 
-        return Array.from(found.entries()).map(([emoji, title]) => ({ emoji, title }));
+        return Array.from(found.entries()).map(([emoji, title]) => ({
+            emoji,
+            title,
+        }));
     }
 }
 
@@ -147,7 +160,9 @@ let isProcessing = false;
 // Pulls one entry off the queue, checks opt-outs, and fires the reaction.
 // Loops itself via setTimeout after each entry so there's always a 500ms
 // gap between reactions regardless of how fast the caller ticks.
-export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise<void> {
+export async function processReactionQueue(
+    queue: ReactionQueueEntry[],
+): Promise<void> {
     // Early out for both the "already working" and "nothing to do" cases.
     // Either way this tick is a no-op.
     if (isProcessing || queue.length === 0) {
@@ -174,9 +189,17 @@ export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise
             // disabled, bail without reacting. Still honour the 500ms tail
             // by scheduling the next tick — we just drop *this* entry on
             // the floor rather than processing it.
-            if (!isReactionAllowed(entry.title, entry.authorId, guildId, entry.systemId)) {
+            if (
+                !isReactionAllowed(
+                    entry.title,
+                    entry.authorId,
+                    guildId,
+                    entry.systemId,
+                )
+            ) {
                 isProcessing = false;
-                if (queue.length > 0) setTimeout(() => processReactionQueue(queue), 500);
+                if (queue.length > 0)
+                    setTimeout(() => processReactionQueue(queue), 500);
                 return;
             }
 
@@ -185,7 +208,10 @@ export async function processReactionQueue(queue: ReactionQueueEntry[]): Promise
             // Don't let a single bad reaction (deleted message, missing
             // permissions, removed emoji, etc.) stop the rest of the
             // queue. Log and move on.
-            console.error(chalk.redBright`Failed to react with ${entry.emoji}:`, error);
+            console.error(
+                chalk.redBright`Failed to react with ${entry.emoji}:`,
+                error,
+            );
         }
     }
 

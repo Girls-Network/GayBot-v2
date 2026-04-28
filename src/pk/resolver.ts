@@ -4,9 +4,13 @@
  * See LICENCE in the project root for full licence information.
  */
 
-import { LruCache } from './cache';
-import { pkFetch, PkApiError } from './client';
-import type { PkMessageResponse, PkSystemResponse, ResolvedSender } from './types';
+import { LruCache } from "./cache";
+import { pkFetch, PkApiError } from "./client";
+import type {
+    PkMessageResponse,
+    PkSystemResponse,
+    ResolvedSender,
+} from "./types";
 
 // PK saves metadata async after proxying, so we'll 404 briefly. Their devs
 // recommend bailing after ~3–5s of exponential backoff.
@@ -23,7 +27,7 @@ const senderCache = new LruCache<string, ResolvedSender | null>(10_000);
 const inFlight = new Map<string, Promise<ResolvedSender | null>>();
 
 function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // Returns the real sender behind a (maybe) PK-proxied message, or null
@@ -32,7 +36,9 @@ function sleep(ms: number): Promise<void> {
 // as a PkApiError for the caller to log.
 //
 // Cached forever — proxy identity doesn't change once set.
-export async function resolveProxiedSender(messageId: string): Promise<ResolvedSender | null> {
+export async function resolveProxiedSender(
+    messageId: string,
+): Promise<ResolvedSender | null> {
     const cached = senderCache.get(messageId);
     if (cached !== undefined) return cached;
 
@@ -49,7 +55,6 @@ export async function resolveProxiedSender(messageId: string): Promise<ResolvedS
 async function doResolve(messageId: string): Promise<ResolvedSender | null> {
     let attempt = 0;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         const res = await pkFetch(`/messages/${encodeURIComponent(messageId)}`);
 
@@ -79,17 +84,21 @@ async function doResolve(messageId: string): Promise<ResolvedSender | null> {
 
         if (res.status === 429) {
             // Respect Retry-After if present; otherwise back off 1s.
-            const header = res.headers.get('Retry-After');
+            const header = res.headers.get("Retry-After");
             const retryAfterSec = header ? Number(header) : NaN;
-            const waitMs = Number.isFinite(retryAfterSec) && retryAfterSec > 0
-                ? retryAfterSec * 1000
-                : 1000;
+            const waitMs =
+                Number.isFinite(retryAfterSec) && retryAfterSec > 0
+                    ? retryAfterSec * 1000
+                    : 1000;
             await sleep(waitMs);
             continue;
         }
 
         // Anything else (5xx, malformed, etc.) — let the caller decide.
-        throw new PkApiError(res.status, `PluralKit API returned ${res.status} for /messages/${messageId}`);
+        throw new PkApiError(
+            res.status,
+            `PluralKit API returned ${res.status} for /messages/${messageId}`,
+        );
     }
 }
 
@@ -108,7 +117,9 @@ const systemInFlight = new Map<string, Promise<string | null>>();
 // it from the /systems/{discord_id} endpoint" (403) — both are the same
 // "nothing to cascade to" from our side, so we flatten them. Any other
 // status throws so the caller can log.
-export async function resolveSystemByDiscordUser(discordUserId: string): Promise<string | null> {
+export async function resolveSystemByDiscordUser(
+    discordUserId: string,
+): Promise<string | null> {
     const cached = systemByDiscordCache.get(discordUserId);
     if (cached !== undefined) return cached;
 
@@ -123,9 +134,10 @@ export async function resolveSystemByDiscordUser(discordUserId: string): Promise
 }
 
 async function doResolveSystem(discordUserId: string): Promise<string | null> {
-    // eslint-disable-next-line no-constant-condition
     while (true) {
-        const res = await pkFetch(`/systems/${encodeURIComponent(discordUserId)}`);
+        const res = await pkFetch(
+            `/systems/${encodeURIComponent(discordUserId)}`,
+        );
 
         if (res.ok) {
             const data = (await res.json()) as PkSystemResponse;
@@ -141,16 +153,20 @@ async function doResolveSystem(discordUserId: string): Promise<string | null> {
         }
 
         if (res.status === 429) {
-            const header = res.headers.get('Retry-After');
+            const header = res.headers.get("Retry-After");
             const retryAfterSec = header ? Number(header) : NaN;
-            const waitMs = Number.isFinite(retryAfterSec) && retryAfterSec > 0
-                ? retryAfterSec * 1000
-                : 1000;
+            const waitMs =
+                Number.isFinite(retryAfterSec) && retryAfterSec > 0
+                    ? retryAfterSec * 1000
+                    : 1000;
             await sleep(waitMs);
             continue;
         }
 
-        throw new PkApiError(res.status, `PluralKit API returned ${res.status} for /systems/${discordUserId}`);
+        throw new PkApiError(
+            res.status,
+            `PluralKit API returned ${res.status} for /systems/${discordUserId}`,
+        );
     }
 }
 
@@ -159,7 +175,9 @@ async function doResolveSystem(discordUserId: string): Promise<string | null> {
 /** Testing/ops hook — drop everything. Not used in prod paths. */
 export function _clearPkCache(): void {
     (senderCache as unknown as { map: Map<unknown, unknown> }).map.clear();
-    (systemByDiscordCache as unknown as { map: Map<unknown, unknown> }).map.clear();
+    (
+        systemByDiscordCache as unknown as { map: Map<unknown, unknown> }
+    ).map.clear();
     inFlight.clear();
     systemInFlight.clear();
 }

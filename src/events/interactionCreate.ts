@@ -23,9 +23,12 @@ import {
     ButtonStyle,
     Collection,
     MessageFlags,
-} from 'discord.js';
-import { handleCommandError, handleInteractionError } from '../handlers/errorHandler';
-import { readGuildFile, readUserFile } from '../utils/dataManager';
+} from "discord.js";
+import {
+    handleCommandError,
+    handleInteractionError,
+} from "../handlers/errorHandler";
+import { readGuildFile, readUserFile } from "../utils/dataManager";
 
 // Minimal client typing — we only care about the two custom properties we
 // stash on the client at boot. Anything else comes from discord.js's own type.
@@ -49,9 +52,9 @@ const COMMANDS_PER_PAGE = 5;
 function getSubcommandKey(interaction: any): string {
     try {
         const group = interaction.options?.getSubcommandGroup(false);
-        const sub   = interaction.options?.getSubcommand(false);
+        const sub = interaction.options?.getSubcommand(false);
         if (group && sub) return `${interaction.commandName} ${group} ${sub}`;
-        if (sub)          return `${interaction.commandName} ${sub}`;
+        if (sub) return `${interaction.commandName} ${sub}`;
     } catch {
         // Top-level command with no subcommand — fall through to the
         // bare command name below.
@@ -60,7 +63,7 @@ function getSubcommandKey(interaction: any): string {
 }
 
 export default {
-    name: 'interactionCreate',
+    name: "interactionCreate",
     async execute(interaction: Interaction) {
         const client = interaction.client as unknown as ExtendedClient;
 
@@ -77,7 +80,7 @@ export default {
             } catch (error) {
                 // Discord will just show "No matches" if we error out;
                 // that's fine, but log it so we can chase it down later.
-                console.error('Autocomplete error:', error);
+                console.error("Autocomplete error:", error);
             }
             return;
         }
@@ -102,7 +105,8 @@ export default {
                     const guildData = readGuildFile(interaction.guildId);
                     if (guildData.disabled_commands?.includes(key)) {
                         await interaction.reply({
-                            content: '❌ This command has been disabled in this server.',
+                            content:
+                                "❌ This command has been disabled in this server.",
                             flags: MessageFlags.Ephemeral,
                         });
                         return;
@@ -112,7 +116,7 @@ export default {
                 // Individual opt-outs. Only matters for commands that
                 // aim at a user ('target' option); self-targeting
                 // commands don't hit this branch.
-                const targetUser = interaction.options.getUser('target');
+                const targetUser = interaction.options.getUser("target");
                 if (targetUser) {
                     const targetData = readUserFile(targetUser.id);
                     if (targetData.disabled_commands?.includes(key)) {
@@ -143,35 +147,46 @@ export default {
             // customId format: "<action>:<currentPage>". Bail out fast for
             // any button that isn't ours — there'll likely be more in future
             // (e.g. confirm dialogs) and we don't want to swallow them.
-            const [action, currentPageStr] = interaction.customId.split(':');
-            if (!action.startsWith('help_')) return;
+            const [action, currentPageStr] = interaction.customId.split(":");
+            if (!action.startsWith("help_")) return;
 
             try {
                 // Increment/decrement based on the verb. The button-disabled
                 // flags below mean we should never see prev at page 0 or
                 // next at last page, but the math wouldn't break if we did.
                 let page = parseInt(currentPageStr);
-                if (action === 'help_next') page++;
-                if (action === 'help_prev') page--;
+                if (action === "help_next") page++;
+                if (action === "help_prev") page--;
 
                 // Re-derive the command list from the live commands collection.
                 // No caching — this only runs on a button click, command set
                 // doesn't change at runtime, and the list is small.
                 const commandList: string[] = [];
                 client.commands.forEach((cmd) => {
-                    commandList.push(`**/${cmd.data.name}**\n└ ${cmd.data.description}`);
+                    commandList.push(
+                        `**/${cmd.data.name}**\n└ ${cmd.data.description}`,
+                    );
                 });
 
-                const totalPages = Math.ceil(commandList.length / COMMANDS_PER_PAGE);
+                const totalPages = Math.ceil(
+                    commandList.length / COMMANDS_PER_PAGE,
+                );
 
                 // Slice the page out of the full list and build the embed.
                 // 0x5865F2 is Discord's blurple — distinguishes /help visually
                 // from the green/yellow/red status embeds elsewhere.
                 const embed = new EmbedBuilder()
-                    .setTitle('📖 Available Commands')
-                    .setDescription(commandList.slice(page * COMMANDS_PER_PAGE, (page + 1) * COMMANDS_PER_PAGE).join('\n\n'))
+                    .setTitle("📖 Available Commands")
+                    .setDescription(
+                        commandList
+                            .slice(
+                                page * COMMANDS_PER_PAGE,
+                                (page + 1) * COMMANDS_PER_PAGE,
+                            )
+                            .join("\n\n"),
+                    )
                     .setFooter({ text: `Page ${page + 1} of ${totalPages}` })
-                    .setColor(0x5865F2);
+                    .setColor(0x5865f2);
 
                 // Rebuild the button row. The customId encodes the *new*
                 // page so the next click knows where to start. setDisabled
@@ -180,20 +195,23 @@ export default {
                 const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
                     new ButtonBuilder()
                         .setCustomId(`help_prev:${page}`)
-                        .setLabel('Previous')
+                        .setLabel("Previous")
                         .setStyle(ButtonStyle.Secondary)
                         .setDisabled(page === 0),
                     new ButtonBuilder()
                         .setCustomId(`help_next:${page}`)
-                        .setLabel('Next')
+                        .setLabel("Next")
                         .setStyle(ButtonStyle.Primary)
-                        .setDisabled(page >= totalPages - 1)
+                        .setDisabled(page >= totalPages - 1),
                 );
 
                 // .update() edits the existing message in place rather than
                 // sending a new one — the buttons "feel" like they're moving
                 // the same embed forward/back instead of spamming the channel.
-                await interaction.update({ embeds: [embed], components: [row] });
+                await interaction.update({
+                    embeds: [embed],
+                    components: [row],
+                });
             } catch (error) {
                 await handleInteractionError(error, interaction);
             }

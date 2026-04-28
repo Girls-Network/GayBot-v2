@@ -20,8 +20,7 @@ import {
     ButtonBuilder,
     ButtonStyle,
     MessageFlags,
-    Collection
-} from 'discord.js';
+} from "discord.js";
 
 // Minimal shape of an entry in client.commands — we only touch .data.name
 // and .data.description so we don't need the full command-module type here.
@@ -38,8 +37,8 @@ const COMMANDS_PER_PAGE = 5;
 
 export default {
     data: {
-        name: 'help',
-        description: 'View all available commands and their details.',
+        name: "help",
+        description: "View all available commands and their details.",
     },
 
     async execute(interaction: CommandInteraction, client: any) {
@@ -67,10 +66,21 @@ export default {
         // makes /help feel like a "native" listing rather than our themed
         // command output (which leans on pride colours elsewhere).
         const embed = new EmbedBuilder()
-            .setTitle('📖 Available Commands')
-            .setDescription(commandList.slice(page * COMMANDS_PER_PAGE, (page + 1) * COMMANDS_PER_PAGE).join('\n\n'))
-            .setFooter({ text: `Page ${page + 1} of ${totalPages}`, iconURL: 'https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png' })
-            .setColor(0x5865F2);
+            .setTitle("📖 Available Commands")
+            .setDescription(
+                commandList
+                    .slice(
+                        page * COMMANDS_PER_PAGE,
+                        (page + 1) * COMMANDS_PER_PAGE,
+                    )
+                    .join("\n\n"),
+            )
+            .setFooter({
+                text: `Page ${page + 1} of ${totalPages}`,
+                iconURL:
+                    "https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png",
+            })
+            .setColor(0x5865f2);
 
         // Prev is always disabled on first render (we're at page 0).
         // Next is disabled only if everything fits on one page, in which
@@ -80,16 +90,20 @@ export default {
         const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
                 .setCustomId(`help_prev:${page}`)
-                .setLabel('Previous')
+                .setLabel("Previous")
                 .setStyle(ButtonStyle.Secondary)
                 .setDisabled(true),
             new ButtonBuilder()
                 .setCustomId(`help_next:${page}`)
-                .setLabel('Next')
+                .setLabel("Next")
                 .setStyle(ButtonStyle.Primary)
-                .setDisabled(totalPages <= 1)
+                .setDisabled(totalPages <= 1),
         );
 
-        await interaction.reply({ embeds: [embed], components: [row], flags: MessageFlags.Ephemeral });
+        await interaction.reply({
+            embeds: [embed],
+            components: [row],
+            flags: MessageFlags.Ephemeral,
+        });
     },
 };
