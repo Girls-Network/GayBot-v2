@@ -24,14 +24,14 @@ You don't need every item — give us what you have. We'll follow up if we need 
 
 We aim to respond on the following schedule:
 
-| Stage                         | Target window         |
-| ----------------------------- | --------------------- |
-| Initial acknowledgement       | within 72 hours       |
-| Triage and severity assessment| within 7 days         |
-| Fix or mitigation in place    | within 30 days*       |
-| Public disclosure / advisory  | after a fix is shipped|
+| Stage                          | Target window          |
+| ------------------------------ | ---------------------- |
+| Initial acknowledgement        | within 72 hours        |
+| Triage and severity assessment | within 7 days          |
+| Fix or mitigation in place     | within 30 days\*       |
+| Public disclosure / advisory   | after a fix is shipped |
 
-*Complex issues may take longer; we'll keep you informed if so.
+\*Complex issues may take longer; we'll keep you informed if so.
 
 ## Scope
 

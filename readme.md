@@ -35,15 +35,15 @@ cp .env.example .env   # then fill in DISCORD_TOKEN, etc.
 
 ### Available scripts
 
-| Script              | What it does                                                 |
-| ------------------- | ------------------------------------------------------------ |
-| `npm run dev`       | Run the bot under nodemon — restarts on TS file changes      |
-| `npm run start`     | Run the bot once via ts-node (no rebuild needed)             |
-| `npm run build`     | Compile TypeScript into `dist/`                              |
-| `npm run lint`      | ESLint over `src/**/*.ts` and root JS, with `--fix`          |
-| `npm run format`    | Prettier write across all source/config/markdown             |
-| `npm run prettylint`| Lint then format. **Run this before every PR.**              |
-| `npm run test`      | Type-check the codebase via `tsc --noEmit`                   |
+| Script               | What it does                                            |
+| -------------------- | ------------------------------------------------------- |
+| `npm run dev`        | Run the bot under nodemon — restarts on TS file changes |
+| `npm run start`      | Run the bot once via ts-node (no rebuild needed)        |
+| `npm run build`      | Compile TypeScript into `dist/`                         |
+| `npm run lint`       | ESLint over `src/**/*.ts` and root JS, with `--fix`     |
+| `npm run format`     | Prettier write across all source/config/markdown        |
+| `npm run prettylint` | Lint then format. **Run this before every PR.**         |
+| `npm run test`       | Type-check the codebase via `tsc --noEmit`              |
 
 CI runs `lint`, `prettier --check`, and `test` against every PR — local `prettylint && test` exiting clean is a good signal CI will be green.
 
