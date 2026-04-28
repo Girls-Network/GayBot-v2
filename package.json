@@ -1,7 +1,7 @@
 {
     "name": "gaybot-reworked",
     "version": "2.4.1",
-    "type": "commonjs",
+    "type": "module",
     "main": "dist/shard.js",
     "description": "A Discord Bot reworked to be simple and understandable",
     "keywords": [
@@ -19,7 +19,7 @@
     "author": "Aria Rees & Clove Nytrix Doughmination Twilight",
     "scripts": {
         "build": "tsc",
-        "start": "ts-node src/shard.ts",
+        "start": "tsx src/shard.ts",
         "dev": "nodemon --watch src --ext ts --exec \"npm run start\"",
         "lint": "eslint \"src/**/*.ts\" \"*.{js,cjs,mjs}\" --fix",
         "format": "prettier --write \"**/*.{ts,js,mjs,cjs,json,md}\"",
@@ -28,11 +28,11 @@
     },
     "devDependencies": {
         "@types/node": "^25.0.3",
-        "ts-node": "^10.9.2",
-        "typescript": "^6.0.2",
+        "eslint": "^10.2.1",
         "nodemon": "^3.1.11",
         "prettier": "^3.8.3",
-        "eslint": "^10.2.1",
+        "tsx": "^4.21.0",
+        "typescript": "^6.0.2",
         "typescript-eslint": "^8.20.0"
     },
     "dependencies": {
