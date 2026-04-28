@@ -36,7 +36,7 @@ export default {
                 // The leading whitespace on the second/third lines is a
                 // template-literal indentation artefact — it renders fine
                 // in Discord embeds because they collapse leading spaces.
-                `**Support Server:**https://discord.gg/transfemme
+                `**Support Server:**https://discord.gg/AVemTzVRza
                 \n**Source Code:** https://github.com/Girls-Network/GayBot-v2
                 \n**Bot Status:** https://status.girlsnetwork.dev`
             )
