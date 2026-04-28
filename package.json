@@ -1,6 +1,6 @@
 {
     "name": "gaybot-reworked",
-    "version": "2.4.0",
+    "version": "2.4.1",
     "type": "commonjs",
     "main": "dist/shard.js",
     "description": "A Discord Bot reworked to be simple and understandable",
