@@ -1,0 +1,50 @@
+# ─── Git LFS ──────────────────────────────────────────────────────────────────
+# Banner assets in assets/ are tracked in LFS so the repo stays slim.
+*.png filter=lfs diff=lfs merge=lfs -text
+# ─── Default line endings ─────────────────────────────────────────────────────
+# Normalise everything to LF in the repo and let Git convert on checkout per OS.
+* text=auto eol=lf
+# ─── Source code (force LF, treat as text) ────────────────────────────────────
+*.ts        text eol=lf
+*.tsx       text eol=lf
+*.js        text eol=lf
+*.mjs       text eol=lf
+*.cjs       text eol=lf
+*.json      text eol=lf
+*.jsonc     text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.md        text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.svg       text eol=lf
+# ─── Shell / config files ─────────────────────────────────────────────────────
+*.sh             text eol=lf
+.editorconfig    text eol=lf
+.gitattributes   text eol=lf
+.gitignore       text eol=lf
+.prettierrc*     text eol=lf
+.env.example     text eol=lf
+Dockerfile       text eol=lf
+# ─── Known binary blobs (don't try to diff or normalise) ──────────────────────
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.ico    binary
+*.mp3    binary
+*.mp4    binary
+*.zip    binary
+*.gz     binary
+*.tar    binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.otf    binary
+# ─── GitHub linguist hints ────────────────────────────────────────────────────
+# Don't count generated/vendor files toward the repo's language stats.
+package-lock.json   linguist-generated=true
+pnpm-lock.yaml      linguist-generated=true
+yarn.lock           linguist-generated=true
+dist/**             linguist-generated=true
+node_modules/**     linguist-vendored=true
