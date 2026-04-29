@@ -1,9 +1,9 @@
 // Flat config for ESLint v9+
-// Tailored for GayBot v2 — a TypeScript Discord bot (CommonJS package).
+// Standardized across all Girls Network bots.
 //
 // Layout:
 //   - src/**/*.ts          → TypeScript bot source (linted via typescript-eslint)
-//   - renamer.js (root)    → standalone CommonJS utility script
+//   - *.cjs (root)         → standalone CommonJS utility scripts
 //   - dist/, node_modules/ → ignored
 
 const tseslint = require("typescript-eslint");
@@ -31,7 +31,6 @@ const nodeGlobals = {
   AbortController: "readonly",
   AbortSignal: "readonly",
   fetch: "readonly",
-  // Node test/util-ish but harmless to allow:
   performance: "readonly",
 };
 
@@ -42,7 +41,7 @@ const sharedRules = {
     { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
   ],
   "no-undef": "error",
-  "no-console": "off", // the bot logs to stdout intentionally
+  "no-console": "off", // bots log to stdout intentionally
   eqeqeq: ["error", "always"],
   "prefer-const": "warn",
   "no-var": "error",
@@ -61,7 +60,6 @@ module.exports = [
   },
 
   // 2) TypeScript bot source (src/**/*.ts)
-  //    Pulls in typescript-eslint's recommended set, scoped to .ts only.
   ...tseslint.configs.recommended.map((cfg) => ({
     ...cfg,
     files: ["src/**/*.ts"],
@@ -90,7 +88,7 @@ module.exports = [
     },
   })),
 
-  // 3) Standalone CommonJS scripts at the repo root (e.g. renamer.js)
+  // 3) Standalone CommonJS scripts at the repo root (e.g. renamer.cjs)
   {
     files: ["*.js", "*.cjs"],
     languageOptions: {

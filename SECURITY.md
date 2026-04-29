@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you believe you've found a security vulnerability in GayBot, please report it privately. **Do not open a public GitHub issue for security reports** — public issues may expose users before a fix is available.
+If you believe you've found a security vulnerability in this project, please report it privately. **Do not open a public GitHub issue for security reports** — public issues may expose users before a fix is available.
 
 Send vulnerability reports to: **[support@girlsnetwork.dev](mailto:support@girlsnetwork.dev)**
 
@@ -39,12 +39,12 @@ The following are **in scope** for this policy:
 
 - The bot's source code in this repository (`src/**`)
 - The deployment artefacts (Dockerfile, GitHub Actions workflows)
-- The way the bot handles Discord tokens, environment variables, and persisted user data (`/identity` profiles, reaction preferences, etc.)
-- Any endpoint exposed by the bot's status server (`src/utils/statusServer.ts`)
+- The way the bot handles Discord tokens, environment variables, and any persisted user data
+- Any HTTP endpoints, IPC channels, or other surfaces the bot exposes at runtime
 
 The following are **out of scope**:
 
-- Vulnerabilities in third-party services we depend on (Discord API, PluralKit API, npm packages) — please report those upstream
+- Vulnerabilities in third-party services or libraries we depend on (Discord API, npm packages, etc.) — please report those upstream
 - Issues that require an attacker to already have administrative access to the host running the bot
 - Denial-of-service requiring unrealistic resources
 - Self-XSS or social engineering attacks
