@@ -38,17 +38,17 @@ if (!TOKEN) {
 asciiArt();
 logBoot();
 
-// In prod we're running compiled JS out of dist/ (so __filename ends in .js
-// and main.js is sitting next to us). In dev, ts-node is running us straight
-// from src/ and our sibling is main.ts instead. Detect which we're in and
-// point ShardingManager at the right file.
+// We run from TypeScript source via tsx in both dev and prod (Docker), so
+// __filename ends in .ts and our sibling is main.ts. If anyone ever runs
+// the compiled JS instead, __filename would end in .js and we'd point at
+// main.js — kept as a fallback.
 //
 // The execArgv bit matters too: ShardingManager forks child processes for
-// each shard, and those children don't inherit our ts-node hook. So in dev
-// we have to tell Node to preload ts-node/register in each shard as well,
-// otherwise they try to load main.ts as plain JS and explode.
-const isTsNode = __filename.endsWith(".ts");
-const botFile = path.join(__dirname, isTsNode ? "main.ts" : "main.js");
+// each shard, and those children don't inherit our tsx loader. So when
+// running from .ts source we tell Node to import tsx in each shard as
+// well, otherwise they try to load main.ts as plain JS and explode.
+const isTsRuntime = __filename.endsWith(".ts");
+const botFile = path.join(__dirname, isTsRuntime ? "main.ts" : "main.js");
 
 const manager = new ShardingManager(botFile, {
     token: TOKEN,
@@ -62,9 +62,9 @@ const manager = new ShardingManager(botFile, {
     // pops back and picks up where it left off. We log the death
     // event below so we can see if this ever kicks in.
     respawn: true,
-    // See the isTsNode note above — child processes need ts-node
-    // preloaded in dev, otherwise they try to execute main.ts as JS.
-    execArgv: isTsNode ? ["-r", "ts-node/register"] : undefined,
+    // See the isTsRuntime note above — child processes need tsx
+    // imported, otherwise they try to execute main.ts as plain JS.
+    execArgv: isTsRuntime ? ["--import", "tsx"] : undefined,
 });
 
 // ── Shard lifecycle logging ────────────────────────────────────────────────

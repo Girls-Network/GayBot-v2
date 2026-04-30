@@ -2,22 +2,19 @@
 # Licensed under the MIT Licence.
 # See LICENCE in the project root for full licence information.
 
-# Stage 1: Build
-FROM node:25-alpine AS builder
+# Stage 1: Typecheck (optional safety net — fails the build on TS errors)
+FROM node:25-alpine AS typecheck
 
 WORKDIR /app
 
-# Copy package files
 COPY package.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy source code
-COPY . .
+COPY tsconfig.json ./
+COPY src ./src
 
-# Build TypeScript
-RUN npm run build
+# tsc --noEmit, defined in package.json as the "test" script
+RUN npm test
 
 # Stage 2: Production
 FROM node:25-alpine
@@ -27,11 +24,12 @@ WORKDIR /app
 # Copy package files
 COPY package.json ./
 
-# Install production dependencies AND dotenvx globally
+# Install production dependencies (tsx is now a runtime dep) AND dotenvx globally
 RUN npm install --omit=dev && npm install -g @dotenvx/dotenvx
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist ./dist
+# Make sure typecheck passed before we ship this image
+COPY --from=typecheck /app/src ./src
+COPY tsconfig.json ./
 
 # Get the assets over.
 COPY assets ./assets
@@ -46,5 +44,4 @@ USER botuser
 
 EXPOSE 5000
 
-# Start the bot with dotenvx
-CMD ["dotenvx", "run", "--", "node", "dist/shard.js"]
+CMD ["dotenvx", "run", "--", "npx", "tsx", "src/shard.ts"]
