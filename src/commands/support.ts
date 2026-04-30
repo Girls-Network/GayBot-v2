@@ -34,7 +34,8 @@ export default {
                 // in Discord embeds because they collapse leading spaces.
                 `**Support Server:**https://discord.gg/AVemTzVRza
                 \n**Source Code:** https://github.com/Girls-Network/GayBot-v2
-                \n**Bot Status:** https://status.girlsnetwork.dev`,
+                \n**Website:** https://yuri-lover.win
+                \n**Bot Status:** https://status.yuri-lover.win`,
             )
             .setColor(0x2ecc71)
             .setFooter({
