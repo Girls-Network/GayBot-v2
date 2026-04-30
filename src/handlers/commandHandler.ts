@@ -7,9 +7,15 @@
 import { Collection, REST, Routes } from "discord.js";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { log, logError } from "../utils/logger";
 import chalk from "chalk";
 import { ExtendedClient } from "../utils/ExtendedClient";
+
+// ESM doesn't define __dirname like CommonJS does — derive it from
+// import.meta.url so the commands directory walk below keeps working.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface BotCommand {
     toggle?: boolean;
@@ -56,9 +62,10 @@ export async function loadCommands(client: ExtendedClient): Promise<void> {
     const grouped = new Map<string, { relKey: string; mod: BotCommand }[]>();
 
     for (const { filePath, relKey } of files) {
-        // Dynamic require is intentional: we're walking disk to discover command modules.
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const mod: BotCommand = require(filePath).default;
+        // Dynamic import is intentional: we're walking disk to discover command
+        // modules. ESM's import() needs a file:// URL for absolute paths.
+        const mod: BotCommand = (await import(pathToFileURL(filePath).href))
+            .default;
         if (!mod?.data || !mod?.execute) continue;
 
         const topLevel: string = mod.data.name;

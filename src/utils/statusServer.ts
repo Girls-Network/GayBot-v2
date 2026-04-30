@@ -7,9 +7,15 @@
 import * as http from "http";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "node:url";
 import { ShardingManager } from "discord.js";
 import { log, logError } from "./logger";
 import chalk from "chalk";
+
+// ESM doesn't define __dirname like CommonJS does — derive it from
+// import.meta.url so the status.html lookup below keeps working.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const STATUS_PORT = parseInt(process.env.STATUS_PORT ?? "5000", 10);
 

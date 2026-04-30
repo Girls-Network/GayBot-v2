@@ -15,9 +15,16 @@
 
 import { ShardingManager } from "discord.js";
 import * as path from "path";
+import { fileURLToPath } from "node:url";
 import chalk from "chalk";
 import { log, logError, logBoot, asciiArt } from "./utils/logger";
 import { startStatusServer } from "./utils/statusServer";
+
+// ESM doesn't define __filename/__dirname like CommonJS does. Derive
+// them from import.meta.url so the rest of the file (which was written
+// for the CJS globals) keeps working.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const TOKEN = process.env.GAYBOT_TOKEN;
 

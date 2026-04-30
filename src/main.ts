@@ -12,12 +12,18 @@ import {
 } from "discord.js";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { loadCommands, deployCommands } from "./handlers/commandHandler";
 import { processReactionQueue } from "./utils/reactionSystem";
 import { logBoot, asciiArt, log } from "./utils/logger";
 import { startBannerRotater } from "./utils/bannerRotator";
 import chalk from "chalk";
 import { ExtendedClient } from "./utils/ExtendedClient";
+
+// ESM doesn't define __dirname like CommonJS does. Derive it from
+// import.meta.url so the rest of the file keeps working.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Minimal intent set: we only need to see guild messages and their content
 // to do the reaction matching. If we ever need DMs or member events, revisit.
@@ -47,9 +53,9 @@ async function loadEvents() {
 
     for (const file of eventFiles) {
         const filePath = path.join(eventsPath, file);
-        // Dynamic require is intentional: we're walking disk to discover event modules.
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const event = require(filePath).default;
+        // Dynamic import is intentional: we're walking disk to discover event
+        // modules. ESM's import() needs a file:// URL for absolute paths.
+        const event = (await import(pathToFileURL(filePath).href)).default;
 
         if (event && event.name && event.execute) {
             if (event.once) {

@@ -6,7 +6,13 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "node:url";
 import chalk from "chalk";
+
+// ESM doesn't define __dirname like CommonJS does — derive it from
+// import.meta.url so the package.json lookup below keeps working.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const LOG_DIR = path.join(process.cwd(), ".logs");
 

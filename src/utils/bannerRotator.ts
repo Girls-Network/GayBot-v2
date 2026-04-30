@@ -16,12 +16,15 @@
 import { Client } from "discord.js";
 import * as fs from "fs";
 import * as path from "path";
+import { fileURLToPath } from "node:url";
 import { log, logError } from "./logger";
 import chalk from "chalk";
 
-// __dirname is .../dist/utils in prod and .../src/utils in dev — both are
-// two levels deep from the project root, so ../../assets points at the
-// right place either way without any "are we ts-node?" detection.
+// ESM doesn't define __dirname like CommonJS does — derive it from
+// import.meta.url. This file lives at src/utils/, two levels from the
+// project root, so ../../assets points at the right place.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const ASSETS_DIR = path.join(__dirname, "../../assets");
 const ROTATE_INTERVAL_MS = 72 * 60 * 1000; // 72 minutes — see file-top note
 
