@@ -3,7 +3,7 @@
 # See LICENCE in the project root for full licence information.
 
 # Stage 1: Typecheck (optional safety net — fails the build on TS errors)
-FROM node:25-alpine AS typecheck
+FROM node:26-alpine AS typecheck
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY src ./src
 RUN npm test
 
 # Stage 2: Production
-FROM node:25-alpine
+FROM node:26-alpine
 
 WORKDIR /app
 
