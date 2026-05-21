@@ -17,7 +17,7 @@ import chalk from "chalk";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const STATUS_PORT = parseInt(process.env.STATUS_PORT ?? "5000", 10);
+const STATUS_PORT = "5050";
 
 interface ShardStatus {
     id: number;
