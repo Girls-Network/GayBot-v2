@@ -1,5 +1,8 @@
 [
-    {"url": "https://girlsnetwork.dev/gifs/hug/1.gif", "source": "K-On!"},
-    {"url": "https://girlsnetwork.dev/gifs/hug/2.gif", "source": "Sound Euphonium"},
-    {"url": "https://girlsnetwork.dev/gifs/hug/3.gif", "source": "Yuru Yuri"}
+    { "url": "https://girlsnetwork.dev/gifs/hug/1.gif", "source": "K-On!" },
+    {
+        "url": "https://girlsnetwork.dev/gifs/hug/2.gif",
+        "source": "Sound Euphonium"
+    },
+    { "url": "https://girlsnetwork.dev/gifs/hug/3.gif", "source": "Yuru Yuri" }
 ]

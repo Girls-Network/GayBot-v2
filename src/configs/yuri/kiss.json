@@ -1,10 +1,31 @@
 [
-    {"url": "https://girlsnetwork.dev/gifs/yuri/1.gif", "source": "Sakura Trick"},
-    {"url": "https://girlsnetwork.dev/gifs/yuri/2.gif", "source": "The Magical Revolution of the Reincarnated Princess"},
-    {"url": "https://girlsnetwork.dev/gifs/yuri/3.gif", "source": "Yuri Kuma Arashi"},
-    {"url": "https://girlsnetwork.dev/gifs/yuri/4.gif", "source": "Genshin Impact / @nomianims"},
-    {"url": "https://girlsnetwork.dev/gifs/yuri/5.gif", "source": "Samurai Flamenco"},
-    {"url": "https://girlsnetwork.dev/gifs/yuri/6.gif", "source": "This Monster Wants to Eat Me"},
-    {"url": "https://girlsnetwork.dev/gifs/yuri/7.gif", "source": "Bloom Into You"},
-    {"url": "https://girlsnetwork.dev/gifs/yuri/8.gif", "source": "Citrus"}
+    {
+        "url": "https://girlsnetwork.dev/gifs/yuri/1.gif",
+        "source": "Sakura Trick"
+    },
+    {
+        "url": "https://girlsnetwork.dev/gifs/yuri/2.gif",
+        "source": "The Magical Revolution of the Reincarnated Princess"
+    },
+    {
+        "url": "https://girlsnetwork.dev/gifs/yuri/3.gif",
+        "source": "Yuri Kuma Arashi"
+    },
+    {
+        "url": "https://girlsnetwork.dev/gifs/yuri/4.gif",
+        "source": "Genshin Impact / @nomianims"
+    },
+    {
+        "url": "https://girlsnetwork.dev/gifs/yuri/5.gif",
+        "source": "Samurai Flamenco"
+    },
+    {
+        "url": "https://girlsnetwork.dev/gifs/yuri/6.gif",
+        "source": "This Monster Wants to Eat Me"
+    },
+    {
+        "url": "https://girlsnetwork.dev/gifs/yuri/7.gif",
+        "source": "Bloom Into You"
+    },
+    { "url": "https://girlsnetwork.dev/gifs/yuri/8.gif", "source": "Citrus" }
 ]
