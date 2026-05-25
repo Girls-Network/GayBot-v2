@@ -47,9 +47,9 @@ export default {
 
         const embed = new EmbedBuilder()
             .setColor(0xff69b4)
-            .setImage(gif)
+            .setImage(gif.url)
             .setFooter({
-                text: "GayBot v2",
+                text: `Source: ${gif.source} | GayBot v2`,
                 iconURL:
                     "https://cdn.discordapp.com/avatars/1475380726643032064/c86c2351bcea2dabfca02272b0ee2354.png",
             });
