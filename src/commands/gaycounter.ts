@@ -28,9 +28,8 @@ import {
 // Add yourself at your own risk, we don't judge... much.
 const gaynessOverrides = new Map<string, number>([
     ["652597508027187240", 1000], // @transbian
-    ["1125844710511104030", 69], // @doughmination.system
+    ["1464890289922641993", 69], // @doughmination.system
     ["908055723659898902", 420], // @lillybanana.7z
-    ["855122091791089664", 54], // @primrosethelesbianlady
     ["1110542429838397471", 200], // @msmoscar
     ["527709099186716673", 200], // @theawesometaco
 ]);
