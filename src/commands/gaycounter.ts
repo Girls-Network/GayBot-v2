@@ -34,19 +34,23 @@ const gaynessOverrides = new Map<string, number>([
     ["527709099186716673", 200], // @theawesometaco
 ]);
 
-// Deterministic pseudo-random gayness from the Discord ID.
-//
-// Why sin() and not a hash?
-//   - sin() is cheap and built-in; no crypto import needed for a joke.
-//   - sin(x) oscillates in [-1, 1] regardless of x, so |sin(x)|*100 gives
-//     a nicely spread-out number in [0, 100).
-//   - We mod the ID by 1000 before feeding it to sin() because snowflakes
-//     are 18+ digit numbers, and sin() starts losing meaningful precision
-//     on very large doubles. Mod-1000 keeps us well inside the safe range
-//     without sacrificing "randomness" of the output.
-//
-// toFixed(1) then parseFloat rounds to one decimal — "46.3% gay" reads
-// funnier than "46.31254718463% gay".
+/* Deterministic pseudo-random gayness from the Discord ID.
+
+ Why sin() and not a hash?
+   - sin() is cheap and built-in; no crypto import needed for a joke.
+   - sin(x) oscillates in [-1, 1] regardless of x, so |sin(x)|*100 gives
+     a nicely spread-out number in [0, 100).
+
+ Discord snowflakes are 64-bit integers and exceed JavaScript's safe
+ integer range. We therefore use BigInt and reduce the value modulo
+ 1000 before converting it to a Number and feeding it to sin().
+ Keeping the input small avoids precision issues with very large
+ floating-point values while still producing a stable deterministic
+ result for each user.
+
+ toFixed(1) then parseFloat rounds to one decimal — "46.3% gay" reads
+ funnier than "46.31254718463% gay". */
+
 function calculateGayness(userId: string): number {
     // Override table wins. If you're in the list, you get your hand-picked
     // number whether it's in [0, 100) or not (1000 for transbian is a joke
@@ -55,9 +59,14 @@ function calculateGayness(userId: string): number {
         return gaynessOverrides.get(userId)!;
     }
 
-    const seeding = parseInt(userId) % 1000;
+    // Discord snowflakes are 64-bit integers and exceed JavaScript's
+    // safe integer range. Use BigInt so we can take the modulo exactly
+    // before converting down to a Number for Math.sin().
+    const seeding = Number(BigInt(userId) % 1000n);
+
     const decimal = Math.abs(Math.sin(seeding)) * 100;
-    const gayness = parseFloat(decimal.toFixed(1));
+    const gayness = Number(decimal.toFixed(1));
+
     return gayness;
 }
 
