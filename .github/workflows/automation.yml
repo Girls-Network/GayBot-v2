@@ -1,0 +1,125 @@
+name: PR Automation
+
+on:
+  pull_request_target:
+    types: [opened, labeled]
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+  contents: write
+  issues: write
+
+jobs:
+  welcome-comment:
+    if: github.event_name == 'pull_request_target' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.GHOSTWIRE_APP_ID }}
+          private-key: ${{ secrets.GHOSTWIRE_APP_PRIVATE_KEY }}
+
+      - name: Comment on new PR
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: "👋 Thanks for opening this PR! It'll be reviewed shortly. Maintainers can say `lgtm` to merge or `wontfix` to close it."
+            });
+
+  comment-to-label:
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request != null
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.GHOSTWIRE_APP_ID }}
+          private-key: ${{ secrets.GHOSTWIRE_APP_PRIVATE_KEY }}
+
+      - name: Check maintainer and apply label
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const maintainers = ["doughmination", "ariarees"];
+            const commenter = context.payload.comment.user.login;
+            const body = context.payload.comment.body.toLowerCase();
+
+            if (!maintainers.includes(commenter)) {
+              core.info(`Ignoring comment from non-maintainer: ${commenter}`);
+              return;
+            }
+
+            const hasLgtm = /\blgtm\b/.test(body);
+            const hasWontfix = /\bwontfix\b/.test(body);
+
+            let label = null;
+            if (hasLgtm && !hasWontfix) label = "lgtm";
+            else if (hasWontfix && !hasLgtm) label = "wontfix";
+
+            if (!label) {
+              core.info(`No single clear trigger word found in: "${body}"`);
+              return;
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              labels: [label]
+            });
+
+  handle-label:
+    if: github.event_name == 'pull_request_target' && github.event.action == 'labeled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.GHOSTWIRE_APP_ID }}
+          private-key: ${{ secrets.GHOSTWIRE_APP_PRIVATE_KEY }}
+
+      - name: Merge on lgtm
+        if: github.event.label.name == 'lgtm'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              merge_method: "merge"
+            });
+
+      - name: Close on wontfix
+        if: github.event.label.name == 'wontfix'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: "Closing this PR — marked as `wontfix`."
+            });
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              state: "closed"
+            });
