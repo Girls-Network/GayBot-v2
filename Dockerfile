@@ -3,29 +3,29 @@
 # See LICENCE in the project root for full licence information.
 
 # Stage 1: Typecheck (optional safety net — fails the build on TS errors)
-FROM node:26-alpine AS typecheck
+FROM oven/bun:1-alpine AS typecheck
 
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install
+COPY package.json bun.lockb ./
+RUN bun install
 
 COPY tsconfig.json ./
 COPY src ./src
 
 # tsc --noEmit, defined in package.json as the "test" script
-RUN npm test
+RUN bun run test
 
 # Stage 2: Production
-FROM node:26-alpine
+FROM oven/bun:1-alpine
 
 WORKDIR /app
 
 # Copy package files
-COPY package.json ./
+COPY package.json bun.lockb ./
 
-# Install production dependencies (tsx is now a runtime dep) AND dotenvx globally
-RUN npm install --omit=dev && npm install -g @dotenvx/dotenvx
+# Install production dependencies
+RUN bun install --production
 
 # Make sure typecheck passed before we ship this image
 COPY --from=typecheck /app/src ./src
@@ -44,4 +44,4 @@ USER botuser
 
 EXPOSE 5000
 
-CMD ["dotenvx", "run", "--", "npx", "tsx", "src/shard.ts"]
+CMD ["bun", "run", "src/shard.ts"]
