@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: ghostwirebot/gaybot
+  IMAGE_NAME: ghostwirebot/ghostwire
 
 jobs:
   deploy:
@@ -55,13 +55,14 @@ jobs:
             type=raw,value=${{ steps.src.outputs.sha }}
             type=raw,value=${{ steps.src.outputs.short }}
           labels: |
-            org.opencontainers.image.title=gaybot
-            org.opencontainers.image.description=A fun Discord bot
+            org.opencontainers.image.title=ghostwire
+            org.opencontainers.image.description=A utility bot for the Girls server
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ steps.src.outputs.sha }}
             org.opencontainers.image.licenses=MIT
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
