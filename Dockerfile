@@ -44,4 +44,4 @@ USER botuser
 
 EXPOSE 5000
 
-CMD ["bun", "run", "src/shard.ts"]
+CMD ["bunx", "dotenvx", "run", "--", "bun", "run", "src/shard.ts"]
