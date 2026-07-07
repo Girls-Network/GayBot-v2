@@ -2,46 +2,38 @@
 # Licensed under the MIT Licence.
 # See LICENCE in the project root for full licence information.
 
-# Stage 1: Typecheck (optional safety net — fails the build on TS errors)
-FROM oven/bun:1-alpine AS typecheck
+# ---- Stage 1: install + typecheck ----
+FROM oven/bun:1-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json bun.lock ./
-RUN bun install
+# Copy only manifest files first so this layer is cached unless deps change
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
 
-COPY tsconfig.json ./
-COPY src ./src
+# Now bring in source and typecheck (fails build on TS errors)
+COPY . .
+RUN bun run build
 
-# tsc --noEmit, defined in package.json as the "test" script
-RUN bun run test
-
-# Stage 2: Production
+# ---- Stage 2: production runtime ----
 FROM oven/bun:1-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json bun.lock ./
+# Only prod deps in the final image
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile --production && \
+    bun install -g @dotenvx/dotenvx
 
-# Install production dependencies
-RUN bun install --production
+# Bring in source (tsx runs from src directly, see note below)
+COPY --from=builder /app/src ./src
 
-# Make sure typecheck passed before we ship this image
-COPY --from=typecheck /app/src ./src
-COPY tsconfig.json ./
-
-# Get the assets over.
-COPY assets ./assets
-
-# Create a non-root user and set up directories with proper permissions
 RUN adduser -D -u 1001 botuser && \
     mkdir -p /app/.logs /app/data && \
     chown -R botuser:botuser /app
 
-# Switch to non-root user
 USER botuser
 
 EXPOSE 5000
 
-CMD ["bun", "run", "src/shard.ts"]
+CMD ["dotenvx", "run", "--", "bun", "run", "start"]

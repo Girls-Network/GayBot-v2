@@ -59,19 +59,8 @@ const botFile = path.join(__dirname, isTsRuntime ? "main.ts" : "main.js");
 
 const manager = new ShardingManager(botFile, {
     token: TOKEN,
-    // totalShards: 5 is our current guild count comfortably — Discord
-    // recommends ~1 shard per 1000 guilds and we're nowhere near that,
-    // but 5 gives us headroom and distributes the gateway connections
-    // so a single-shard hiccup doesn't pause the whole bot.
     totalShards: 5,
-    // Auto-restart crashed shards. A transient websocket fault or an
-    // uncaught exception shouldn't take the bot offline — the shard
-    // pops back and picks up where it left off. We log the death
-    // event below so we can see if this ever kicks in.
     respawn: true,
-    // See the isTsRuntime note above — child processes need tsx
-    // imported, otherwise they try to execute main.ts as plain JS.
-    execArgv: isTsRuntime ? ["--import", "tsx"] : undefined,
 });
 
 // ── Shard lifecycle logging ────────────────────────────────────────────────
