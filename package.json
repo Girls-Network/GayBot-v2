@@ -19,8 +19,8 @@
     "author": "Aria Rees & Clove Nytrix Doughmination Twilight",
     "scripts": {
         "build": "tsc",
-        "start": "tsx src/shard.ts",
-        "dev": "nodemon --watch src --ext ts --exec \"npm run start\"",
+        "start": "bun run src/shard.ts",
+        "dev": "bun --watch src/shard.ts",
         "lint": "eslint \"src/**/*.ts\" \"*.{js,cjs,mjs}\" --fix",
         "format": "prettier --write \"**/*.{ts,js,mjs,cjs,json,md}\"",
         "prettylint": "npm run lint && npm run format",
@@ -29,7 +29,6 @@
     "devDependencies": {
         "@types/node": "^26.0.1",
         "eslint": "^10.6.0",
-        "nodemon": "^3.1.14",
         "prettier": "^3.9.1",
         "typescript": "^6.0.3",
         "typescript-eslint": "^8.62.0"
