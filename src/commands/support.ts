@@ -32,10 +32,10 @@ export default {
                 // The leading whitespace on the second/third lines is a
                 // template-literal indentation artefact — it renders fine
                 // in Discord embeds because they collapse leading spaces.
-                `**Support Server:**https://discord.gg/dbrHFcAnZY
-                \n**Source Code:** https://github.com/Girls-Network/GayBot-v2
-                \n**Website:** https://yuri-lover.win
-                \n**Bot Status:** https://status.yuri-lover.win`,
+                `**Support Server:** \nhttps://discord.gg/dbrHFcAnZY
+                \n**Source Code:** \nhttps://github.com/Girls-Network/GayBot-v2
+                \n**Website:** \nhttps://yuri-lover.win
+                \n**Bot Status:** \nhttps://status.yuri-lover.win`,
             )
             .setColor(0x2ecc71)
             .setFooter({
