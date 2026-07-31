@@ -45,6 +45,69 @@ interface StatusPayload {
 
 const startedAt = new Date();
 
+interface StatsTotals {
+    users: number; // unique users the bot has cached, deduped across shards
+    guilds: number;
+    user_installs: number; // Discord's approximate user-install count
+}
+
+// Totals for /api/stats — the numbers a consumer wants without leaning on
+// Discord's own figures.
+//
+// users: we don't have the GuildMembers intent, so we can't enumerate every
+//   member of every guild. The best available "unique users" is the union of
+//   each shard's user cache (users the bot has actually seen), deduped by ID
+//   across shards. We pull IDs per shard and union them here so a user in
+//   several mutual guilds is counted once.
+// user_installs: read from the application object (approximateUserInstallCount).
+//   It's a global value, so one reachable shard is enough.
+async function collectTotals(manager: ShardingManager): Promise<StatsTotals> {
+    const userIds = new Set<string>();
+    let guilds = 0;
+    let userInstalls = 0;
+    let haveInstalls = false;
+
+    for (const [, shard] of manager.shards) {
+        try {
+            const results = await Promise.race([
+                Promise.all([
+                    shard.eval((c: any) => c.guilds.cache.size),
+                    shard.eval((c: any) => [...c.users.cache.keys()]),
+                    // Global figure — only fetch it until we get one answer.
+                    haveInstalls
+                        ? Promise.resolve(0)
+                        : shard.eval(async (c: any) => {
+                              const app = await c.application.fetch();
+                              return app.approximateUserInstallCount ?? 0;
+                          }),
+                ]),
+                new Promise<null>((resolve) =>
+                    setTimeout(() => resolve(null), 2000),
+                ),
+            ]);
+
+            if (results) {
+                const [g, ids, installs] = results as [number, string[], number];
+                guilds += g;
+                for (const id of ids) userIds.add(id);
+                if (!haveInstalls && installs > 0) {
+                    userInstalls = installs;
+                    haveInstalls = true;
+                }
+            }
+        } catch {
+            // A dead/unreachable shard contributes nothing rather than
+            // failing the whole request.
+        }
+    }
+
+    return {
+        users: userIds.size,
+        guilds,
+        user_installs: userInstalls,
+    };
+}
+
 async function collectStats(manager: ShardingManager): Promise<StatusPayload> {
     const shardStatuses: ShardStatus[] = [];
 
@@ -135,6 +198,25 @@ export function startStatusServer(manager: ShardingManager): void {
                 res.end(JSON.stringify(payload));
             } catch (err) {
                 logError(err, "StatusServer /api/status");
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "Failed to collect stats" }));
+            }
+            return;
+        }
+
+        // /api/stats — just the live user + guild totals, so consumers
+        // don't have to lean on Discord's own numbers. CORS wide open to
+        // match /api/status.
+        if (url === "/api/stats") {
+            try {
+                const payload = await collectTotals(manager);
+                res.writeHead(200, {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                });
+                res.end(JSON.stringify(payload));
+            } catch (err) {
+                logError(err, "StatusServer /api/stats");
                 res.writeHead(500, { "Content-Type": "application/json" });
                 res.end(JSON.stringify({ error: "Failed to collect stats" }));
             }
