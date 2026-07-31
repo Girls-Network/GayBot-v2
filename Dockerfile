@@ -34,6 +34,6 @@ RUN adduser -D -u 1001 botuser && \
 
 USER botuser
 
-EXPOSE 5000
+EXPOSE 5050
 
 CMD ["dotenvx", "run", "--", "bun", "run", "start"]
