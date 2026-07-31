@@ -28,6 +28,10 @@ RUN bun install --frozen-lockfile --production && \
 # Bring in source (tsx runs from src directly, see note below)
 COPY --from=builder /app/src ./src
 
+# The status server serves this dashboard from the project root
+# (statusServer.ts resolves ../../status.html -> /app/status.html).
+COPY --from=builder /app/status.html ./status.html
+
 RUN adduser -D -u 1001 botuser && \
     mkdir -p /app/.logs /app/data && \
     chown -R botuser:botuser /app
