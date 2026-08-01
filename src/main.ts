@@ -76,7 +76,7 @@ client.once("clientReady", () => {
             `[Shard ${shardId}] Logged in as ${client.user?.tag}`,
         ),
     );
-    client.user?.setActivity("Gayness", { type: ActivityType.Watching });
+    client.user?.setActivity("Support Server: gaybot.site/discord", { type: ActivityType.Watching });
 
     // Banners are a bot-wide thing, not per-shard. Running the rotater on
     // every shard would just hammer Discord with identical PATCH calls.
