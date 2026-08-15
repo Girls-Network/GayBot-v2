@@ -20,6 +20,7 @@ import { startBannerRotater } from "./utils/bannerRotator";
 import chalk from "chalk";
 import { ExtendedClient } from "./utils/ExtendedClient";
 
+
 // ESM doesn't define __dirname like CommonJS does. Derive it from
 // import.meta.url so the rest of the file keeps working.
 const __filename = fileURLToPath(import.meta.url);
@@ -77,20 +78,18 @@ client.once("clientReady", () => {
         ),
     );
 
-    const { ActivityType } = require('discord.js');
-
-    client.once('ready', () => {
-    client.user.setPresence({
-        status: 'online',
-        activities: [
-        {
-            type: ActivityType.Custom,
-            name: 'custom',
-            state: '🔗 gaybot.site/discord'
-        }
-        ]
-    });
-    });
+    if (client.user) {
+        client.user.setPresence({
+            status: "online",
+            activities: [
+                {
+                    type: ActivityType.Custom,
+                    name: "custom",
+                    state: "🔗 gaybot.site/discord",
+                },
+            ],
+        });
+    }
 
     // Banners are a bot-wide thing, not per-shard. Running the rotater on
     // every shard would just hammer Discord with identical PATCH calls.
