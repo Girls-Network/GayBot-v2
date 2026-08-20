@@ -20,17 +20,14 @@ FROM oven/bun:1-alpine
 
 WORKDIR /app
 
-# Only prod deps in the final image
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile --production && \
     bun install -g @dotenvx/dotenvx
 
-# Bring in source (tsx runs from src directly, see note below)
 COPY --from=builder /app/src ./src
 
-# The status server serves this dashboard from the project root
-# (statusServer.ts resolves ../../status.html -> /app/status.html).
 COPY --from=builder /app/status.html ./status.html
+COPY --from=builder /app/assets ./assets
 
 RUN adduser -D -u 1001 botuser && \
     mkdir -p /app/.logs /app/data && \
